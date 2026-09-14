@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="MunshiJi ledger mark">
+  <rect width="64" height="64" rx="14" fill="#1c1915" />
+  <rect x="12" y="10" width="40" height="44" rx="4" fill="#f2e7d3" />
+  <rect x="12" y="10" width="7" height="44" rx="3" fill="#b23a2e" />
+  <g stroke="#c9b89a" stroke-width="2" stroke-linecap="round">
+    <path d="M25 22h20M25 30h20M25 38h13" />
+  </g>
+  <circle cx="45" cy="45" r="6" fill="#c99a3c" />
+</svg>

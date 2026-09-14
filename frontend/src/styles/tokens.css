@@ -1,0 +1,249 @@
+/*
+ * MunshiJi design tokens — "bahi khata".
+ *
+ * The subject is a kirana shop's ledger, so the surface is warm paper, the text is ink, the
+ * structure is ruled lines, and the margin rule is red. Red marks what needs attention, a
+ * single warm gold marks approvals and money that came back, and a deep teal marks anything
+ * running live (providers, focus rings). Deliberately not Paytm blue.
+ *
+ * Every token is defined in the base :root. The dark block redefines the same names only.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* --- surfaces --------------------------------------------------------- */
+  --page: #efe7d9;
+  --page-edge: #e6dbc8;
+  --panel: #fbf7ee;
+  --panel-inset: #f4ecdd;
+  --panel-sunk: #eee5d3;
+  --rule: #e3d8c4;
+  --rule-strong: #cdbda1;
+  --rule-faint: #ece2d0;
+
+  /* --- ink -------------------------------------------------------------- */
+  --ink: #1a1712;
+  --ink-2: #4e463a;
+  --ink-3: #7d7263;
+  --ink-inverse: #fbf7ee;
+
+  /* --- accents ---------------------------------------------------------- */
+  --red: #b03528;
+  --red-ink: #8f2a1f;
+  --red-wash: #f8e5e0;
+  --red-edge: #e6bdb3;
+
+  --gold: #a8761b;
+  --gold-ink: #865d12;
+  --gold-wash: #f8ecd3;
+  --gold-edge: #e3cd9d;
+
+  --green: #2f6a4a;
+  --green-ink: #245439;
+  --green-wash: #e2efe4;
+  --green-edge: #b8d6c0;
+
+  --teal: #0f6d63;
+  --teal-ink: #0b544c;
+  --teal-wash: #ddeeeb;
+  --teal-edge: #a9d2cc;
+
+  --focus: #0f6d63;
+
+  /* --- payment-mix ramp (one hue family, ordered by share) -------------- */
+  --mix-1: #8a5a2b;
+  --mix-2: #b3813f;
+  --mix-3: #cfa564;
+  --mix-4: #e0c391;
+  --mix-5: #efdfc2;
+
+  /* --- graph node colours ----------------------------------------------- */
+  --node-merchant: #1a1712;
+  --node-customer: #0f6d63;
+  --node-product: #8a5a2b;
+  --node-day: #6b6152;
+  --node-action: #a8761b;
+  --node-insight: #b03528;
+  --node-note: #5b6b86;
+  --node-conversation: #74508f;
+
+  /* --- type ------------------------------------------------------------- */
+  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+  --font-text: 'IBM Plex Sans', 'IBM Plex Sans Devanagari', 'Segoe UI', system-ui, -apple-system,
+    sans-serif;
+  --font-deva: 'IBM Plex Sans Devanagari', 'Noto Sans Devanagari', 'Nirmala UI', 'Mangal',
+    var(--font-text);
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, 'Courier New', monospace;
+
+  /*
+   * --- type scale ---------------------------------------------------------
+   *
+   * This screen is watched from three metres while a phone call happens, not read by someone
+   * leaning into a laptop. So the scale has real steps: a label and a headline must never be
+   * one notch apart. Sizes are px, not rem, because the jumps are the point and a browser
+   * zoom should move the whole instrument together.
+   */
+  --t-label: 11px; /* uppercase, tracked, the quietest thing on screen */
+  --t-xs: 12.5px; /* metadata: latencies, refs, timestamps */
+  --t-sm: 13.5px; /* dense secondary copy */
+  --t-base: 15px; /* default body */
+  --t-md: 17px; /* panel titles, insight headlines */
+  --t-lg: 21px; /* the transcript — the thing an audience actually reads */
+  --t-xl: 30px; /* a panel's own headline figure */
+  --t-hero: clamp(40px, 4.2vw, 60px); /* today's collection, and nothing else */
+
+  --lh-tight: 1.12;
+  --lh-snug: 1.32;
+  --lh-body: 1.5;
+  --track-label: 0.1em;
+  --track-tight: -0.015em;
+
+  /* --- spacing scale ------------------------------------------------------ */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 22px;
+  --s-6: 30px;
+
+  /* --- shape and depth --------------------------------------------------- */
+  --r-sm: 3px;
+  --r-md: 6px;
+  --r-lg: 10px;
+  --shadow-panel: 0 1px 0 rgba(255, 253, 247, 0.7) inset, 0 10px 26px -20px rgba(66, 44, 14, 0.8);
+  --shadow-raised: 0 14px 30px -20px rgba(66, 44, 14, 0.9);
+  --shadow-pop: 0 18px 40px -22px rgba(40, 26, 8, 0.75);
+
+  /* --- motion ------------------------------------------------------------ */
+  --ease: cubic-bezier(0.22, 0.68, 0.32, 1);
+  --dur-fast: 120ms;
+  --dur: 220ms;
+  --dur-slow: 420ms;
+}
+
+/* System preference, unless the user has explicitly chosen light. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --page: #14120e;
+    --page-edge: #100e0b;
+    --panel: #1d1a15;
+    --panel-inset: #24201a;
+    --panel-sunk: #171410;
+    --rule: #332d24;
+    --rule-strong: #4a4132;
+    --rule-faint: #262119;
+
+    --ink: #f3ebda;
+    --ink-2: #c5baa5;
+    --ink-3: #8d8272;
+    --ink-inverse: #14120e;
+
+    --red: #e58069;
+    --red-ink: #f09b85;
+    --red-wash: #3b211b;
+    --red-edge: #5e372c;
+
+    --gold: #e0b263;
+    --gold-ink: #eec77e;
+    --gold-wash: #382b16;
+    --gold-edge: #5c4622;
+
+    --green: #6fbf92;
+    --green-ink: #8ed3ab;
+    --green-wash: #1c3227;
+    --green-edge: #2f5340;
+
+    --teal: #5ec8bb;
+    --teal-ink: #7ed8cc;
+    --teal-wash: #17332f;
+    --teal-edge: #2b554e;
+
+    --focus: #6fd8c8;
+
+    --mix-1: #e0b263;
+    --mix-2: #c08f49;
+    --mix-3: #9a6f39;
+    --mix-4: #6f4f2a;
+    --mix-5: #4a3520;
+
+    --node-merchant: #f3ebda;
+    --node-customer: #5ec8bb;
+    --node-product: #d09a5c;
+    --node-day: #a49881;
+    --node-action: #e0b263;
+    --node-insight: #e58069;
+    --node-note: #9db0cf;
+    --node-conversation: #bb96d4;
+
+    --shadow-panel: 0 1px 0 rgba(255, 240, 214, 0.05) inset, 0 14px 30px -24px rgba(0, 0, 0, 1);
+    --shadow-raised: 0 18px 34px -24px rgba(0, 0, 0, 1);
+    --shadow-pop: 0 22px 46px -26px rgba(0, 0, 0, 1);
+  }
+}
+
+/* Explicit override wins in both directions. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --page: #14120e;
+  --page-edge: #100e0b;
+  --panel: #1d1a15;
+  --panel-inset: #24201a;
+  --panel-sunk: #171410;
+  --rule: #332d24;
+  --rule-strong: #4a4132;
+  --rule-faint: #262119;
+
+  --ink: #f3ebda;
+  --ink-2: #c5baa5;
+  --ink-3: #8d8272;
+  --ink-inverse: #14120e;
+
+  --red: #e58069;
+  --red-ink: #f09b85;
+  --red-wash: #3b211b;
+  --red-edge: #5e372c;
+
+  --gold: #e0b263;
+  --gold-ink: #eec77e;
+  --gold-wash: #382b16;
+  --gold-edge: #5c4622;
+
+  --green: #6fbf92;
+  --green-ink: #8ed3ab;
+  --green-wash: #1c3227;
+  --green-edge: #2f5340;
+
+  --teal: #5ec8bb;
+  --teal-ink: #7ed8cc;
+  --teal-wash: #17332f;
+  --teal-edge: #2b554e;
+
+  --focus: #6fd8c8;
+
+  --mix-1: #e0b263;
+  --mix-2: #c08f49;
+  --mix-3: #9a6f39;
+  --mix-4: #6f4f2a;
+  --mix-5: #4a3520;
+
+  --node-merchant: #f3ebda;
+  --node-customer: #5ec8bb;
+  --node-product: #d09a5c;
+  --node-day: #a49881;
+  --node-action: #e0b263;
+  --node-insight: #e58069;
+  --node-note: #9db0cf;
+  --node-conversation: #bb96d4;
+
+  --shadow-panel: 0 1px 0 rgba(255, 240, 214, 0.05) inset, 0 14px 30px -24px rgba(0, 0, 0, 1);
+  --shadow-raised: 0 18px 34px -24px rgba(0, 0, 0, 1);
+  --shadow-pop: 0 22px 46px -26px rgba(0, 0, 0, 1);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
