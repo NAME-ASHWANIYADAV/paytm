@@ -155,9 +155,9 @@ export function LiveCall({ variant = 'full' }: LiveCallProps): JSX.Element {
   const busyVoice = busy.transcribing
   const micLabel = recorder.recording ? 'Recording bandh karein' : 'Bolkar poochhein'
   const compact = variant === 'strip'
-  // The strip carries the thread, not the history: the last exchange is enough to keep a viewer
-  // oriented while the presenter moves between pages.
-  const shown = compact ? transcript.slice(-2) : transcript
+  // The strip carries the last thing said, not a transcript. Two turns needed more height than
+  // a strip has, and what a viewer needs while moving between pages is the thread, not the log.
+  const shown = compact ? transcript.slice(-1) : transcript
 
   return (
     <section

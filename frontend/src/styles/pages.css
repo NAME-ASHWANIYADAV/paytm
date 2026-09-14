@@ -93,12 +93,13 @@
   overflow: hidden;
 }
 
+/* Title over lede, not beside it: as flex siblings the lede wrapped to a second line that kept
+   the title's indent, which read as a mistake. */
 .page__head {
   display: flex;
-  align-items: baseline;
-  gap: var(--s-3);
-  flex-wrap: wrap;
-  padding: var(--s-4) var(--s-5) var(--s-3);
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--s-3) var(--s-5);
   border-bottom: 3px double var(--rule-strong);
 }
 
@@ -127,12 +128,33 @@
 
 /* ============================================================= call page + strip */
 
+/* The call fills the page and scrolls inside itself; `align-items: start` let the panel take its
+   natural height and run off the bottom, taking the composer with it. */
 .page__body--call {
   display: grid;
   grid-template-columns: 1.25fr 1fr;
   gap: var(--s-4);
-  align-items: start;
+  align-items: stretch;
   padding: var(--s-4);
+  overflow: hidden;
+}
+
+.page__body--call > * {
+  min-height: 0;
+}
+
+/* The conversation does not need to repeat the page's name — but the figures beside it still
+   need their own, so this is scoped to the call panel alone. */
+.page__body--call .area-call .panel__title {
+  display: none;
+}
+
+.page__body--call .area-call .panel__head {
+  justify-content: flex-end;
+}
+
+.page__body--call .panel__head {
+  padding-block: var(--s-2);
 }
 
 @media (max-width: 1100px) {
@@ -141,34 +163,98 @@
   }
 }
 
-/* The conversation, reduced to its thread. Fixed height so pages above it never reflow. */
+/* The strip: what was last said, and somewhere to answer it. One row, fixed height, so no page
+   above it reflows when the conversation moves. */
 .callstrip {
   flex: none;
-  height: 104px;
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-2) var(--s-4);
   background: var(--panel);
   border: 1px solid var(--rule);
   border-top: 3px double var(--rule-strong);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-panel);
-  overflow: hidden;
+}
+
+.callstrip__said {
   display: flex;
-}
-
-.callstrip .area-call {
+  align-items: baseline;
+  gap: var(--s-3);
+  min-width: 0;
   flex: 1;
-  border: none;
-  box-shadow: none;
-  border-radius: 0;
-  min-height: 0;
+  text-decoration: none;
+  color: inherit;
+  padding: var(--s-1) 0;
 }
 
-.livecall--strip .turn__bubble {
+.callstrip__said:hover .callstrip__text {
+  color: var(--ink);
+}
+
+.callstrip__said:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+.callstrip__who {
+  flex: none;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.callstrip__text {
   font-size: var(--t-base);
-  padding: var(--s-2) var(--s-3);
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease);
 }
 
-.livecall--strip .turn__who {
-  display: none;
+.callstrip__ask {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex: 0 1 460px;
+  min-width: 260px;
+}
+
+.callstrip__ask input {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 11px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--rule-strong);
+  background: var(--panel-inset);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-sm);
+}
+
+.callstrip__ask input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+@media (max-width: 880px) {
+  .callstrip__said {
+    display: none;
+  }
+
+  .callstrip__ask {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .callstrip__text {
+    transition: none;
+  }
 }
 
 /* ================================================================ health page */
@@ -429,6 +515,14 @@
 .page__body--memory {
   padding: 0;
   display: flex;
+}
+
+.page__body--memory .panel__head .panel__title {
+  display: none;
+}
+
+.page__body--memory .panel__head {
+  justify-content: flex-end;
 }
 
 .page__body--memory .area-memory {

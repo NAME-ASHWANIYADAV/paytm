@@ -143,9 +143,13 @@ export function MemoryGraph({ variant = 'panel' }: MemoryGraphProps): JSX.Elemen
     const step = (): void => {
       const bodies = bodiesRef.current
       const dt = 0.55
-      const repulsion = 900
+      // Scaled to the canvas, not fixed. With constants tuned for a 330px rail, a page-sized
+      // canvas left the whole graph clumped in the middle of an empty field: the springs pulled
+      // as hard as ever while the space around them quadrupled.
+      const spread = Math.sqrt((width * height) / (bodies.length || 1))
+      const repulsion = Math.max(900, spread * spread * 0.55)
       const spring = 0.045
-      const rest = 62
+      const rest = Math.max(62, spread * 0.78)
       const centring = 0.0016
       const damping = 0.86
 
