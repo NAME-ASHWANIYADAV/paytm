@@ -11,10 +11,10 @@ if (!container) throw new Error('#root missing from index.html')
 
 createRoot(container).render(
   <StrictMode>
-    <AppProvider>
-      <RouterProvider>
+    <RouterProvider>
+      <AppProvider>
         <App />
-      </RouterProvider>
-    </AppProvider>
+      </AppProvider>
+    </RouterProvider>
   </StrictMode>,
 )

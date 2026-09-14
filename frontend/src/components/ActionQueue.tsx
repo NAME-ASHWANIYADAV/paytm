@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import type { ActionOut, OutcomeOut } from '../api/types'
 import { useApp } from '../state/store'
+import { ChainLink } from './Chain'
 import { CheckIcon, CrossIcon } from './Icons'
 
 const TIME = new Intl.DateTimeFormat('en-GB', {
@@ -42,7 +43,11 @@ function Outcomes({ outcomes }: { outcomes: OutcomeOut[] }): JSX.Element | null 
 }
 
 function ActionCard({ action }: { action: ActionOut }): JSX.Element {
-  const { approve, reject, busy } = useApp()
+  const { approve, reject, busy, insights } = useApp()
+  // The finding that produced this proposal, if it is still in the open feed.
+  const cause = action.insight_id
+    ? (insights?.insights ?? []).find((item) => item.id === action.insight_id)
+    : undefined
   const [justDone, setJustDone] = useState(false)
   const previousStatus = useRef(action.status)
 
@@ -92,6 +97,12 @@ function ActionCard({ action }: { action: ActionOut }): JSX.Element {
             <span>{stamp(action.executed_at ?? action.decided_at ?? action.requested_at)}</span>
           </div>
         )}
+
+        {cause ? (
+          <ChainLink direction="from" to="/salah" kind="salah">
+            {cause.title_en}
+          </ChainLink>
+        ) : null}
 
         <h3 className="action__hi deva" lang="hi">
           {action.summary_hi || action.summary_en}
@@ -166,6 +177,12 @@ function ActionCard({ action }: { action: ActionOut }): JSX.Element {
         ) : null}
 
         <Outcomes outcomes={action.outcomes} />
+
+        {action.outcomes.length ? (
+          <ChainLink direction="to" to="/yaaddasht" kind="yaad">
+            what MunshiJi remembers about this
+          </ChainLink>
+        ) : null}
       </div>
     </article>
   )

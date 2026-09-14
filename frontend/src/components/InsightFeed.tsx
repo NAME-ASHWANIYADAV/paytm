@@ -1,5 +1,6 @@
 import type { InsightOut, JsonValue } from '../api/types'
 import { useApp } from '../state/store'
+import { ChainLink } from './Chain'
 import { RefreshIcon, SparkIcon } from './Icons'
 
 /** What to say to MunshiJi when the merchant taps "Ask MunshiJi" on a card. */
@@ -49,7 +50,10 @@ function InsightCard({
   insight: InsightOut
   onPage?: boolean
 }): JSX.Element {
-  const { send, busy } = useApp()
+  const { send, busy, actions } = useApp()
+  // A finding that has already become a proposal should say so, rather than inviting the
+  // merchant to ask for something he has already been offered.
+  const became = (actions?.actions ?? []).find((action) => action.insight_id === insight.id)
   const chips = metricChips(insight.metrics)
   const prompt = insight.suggested_tool
     ? TOOL_PROMPT[insight.suggested_tool] ?? `${insight.title_en} — iska kya karein?`
@@ -87,6 +91,14 @@ function InsightCard({
             </span>
           ))}
         </div>
+      ) : null}
+
+      {became ? (
+        <ChainLink direction="to" to="/kaam" kind="kaam">
+          {became.status === 'pending_approval'
+            ? 'a proposal is waiting on your yes'
+            : became.summary_en || became.tool_name}
+        </ChainLink>
       ) : null}
 
       <div className="insight__foot">

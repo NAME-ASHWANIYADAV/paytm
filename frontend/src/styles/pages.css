@@ -527,3 +527,93 @@
 .insights .empty p {
   margin: 0;
 }
+
+/* ======================================================= page measure & proportion
+
+   The panels were drawn for a 330px rail. Dropping them into a 1400px page without a measure
+   stretched every one of them: an approve button ran the full width of the screen, a pending
+   card became a wall of gold, and a card that read as one object in the rail read as a banner
+   here. Text has a comfortable measure and so do controls — so the page holds a column, and the
+   page is the margin around it. */
+
+.page__body > .area-actions,
+.page__body > .area-insights,
+.page__body > .refusals,
+.page__body > .feedbar,
+.page__body > .health {
+  max-width: 1040px;
+  margin-inline: auto;
+}
+
+/* A decision is a button, not a banner. */
+.area-actions--page .action__buttons {
+  justify-content: flex-start;
+}
+
+.area-actions--page .action__buttons .btn {
+  flex: 0 0 auto;
+  min-width: 180px;
+}
+
+/* In the rail the strap had to shout to be noticed; on the page it only has to label. */
+.area-actions--page .action__strap {
+  font-size: var(--t-label);
+}
+
+.area-actions--page .action {
+  margin-bottom: var(--s-3);
+}
+
+/* ===================================================================== the chain
+
+   A link between two steps of the loop. Quiet by default — it is a thread, not a call to
+   action — and it only ever appears when the underlying record actually exists. */
+
+.chain {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  margin: var(--s-2) 0;
+  padding: 3px 10px 3px 6px;
+  border-left: 2px solid var(--rule-strong);
+  color: var(--ink-3);
+  font-size: var(--t-sm);
+  text-decoration: none;
+  max-width: 100%;
+  transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+
+.chain:hover {
+  color: var(--ink);
+  border-left-color: var(--red);
+}
+
+.chain:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+.chain__arrow {
+  font-family: var(--font-mono);
+  color: var(--red);
+}
+
+.chain__kind {
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.chain__what {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chain {
+    transition: none;
+  }
+}

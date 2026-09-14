@@ -1,4 +1,5 @@
 import { DimensionBar } from '../components/DimensionBar'
+import { ChainLink } from '../components/Chain'
 import { HealthDial } from '../components/HealthDial'
 import { useApp } from '../state/store'
 
@@ -32,6 +33,9 @@ export function HealthPage(): JSX.Element {
           <div className="health">
             <HealthDial health={merchantHealth} />
             <div className="health__dims">
+              <ChainLink direction="to" to="/salah" kind="salah">
+                what would move the weakest of these
+              </ChainLink>
               {merchantHealth.dimensions.map((dimension) => (
                 <DimensionBar
                   key={dimension.key}

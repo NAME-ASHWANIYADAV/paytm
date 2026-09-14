@@ -3,6 +3,7 @@
  * that owns the API calls, the live-event wiring and the conversation transcript.
  */
 
+import { useRoute } from '../router'
 import {
   createContext,
   useCallback,
@@ -126,6 +127,28 @@ function readMuted(): boolean {
   }
 }
 
+/**
+ * Which page a tool's answer belongs on.
+ *
+ * The product's claim is that MunshiJi does things, not that it describes them — so when it runs
+ * a tool, the screen goes where the result lives. Asking who has gone quiet lands you on सलाह with
+ * the finding open; approving an offer lands you on काम beside it. Tools that answer a question
+ * about today are absent on purpose: those figures are already beside the conversation, and
+ * moving the screen for them would be motion without meaning.
+ */
+const PAGE_FOR_TOOL: Record<string, string> = {
+  get_insights: '/salah',
+  find_dormant_customers: '/salah',
+  get_inventory_alerts: '/salah',
+  get_product_performance: '/salah',
+  send_winback_offer: '/kaam',
+  send_udhaar_reminder: '/kaam',
+  draft_restock_order: '/kaam',
+  create_payment_link: '/kaam',
+  recall_memory: '/yaaddasht',
+  get_merchant_health: '/sehat',
+}
+
 export function AppProvider({ children }: { children: ReactNode }): JSX.Element {
   const [health, setHealth] = useState<HealthOut | null>(null)
   const [dashboard, setDashboard] = useState<DashboardOut | null>(null)
@@ -176,6 +199,17 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
     const { data } = await getDashboard()
     setDashboard(data)
   }, [])
+
+  const { path, navigate } = useRoute()
+
+  /** Follow the first tool that has a home page, unless the reader is already there. */
+  const followTools = useCallback(
+    (calls: ToolCallOut[]) => {
+      const target = calls.map((call) => PAGE_FOR_TOOL[call.name]).find(Boolean)
+      if (target && target !== path) navigate(target)
+    },
+    [navigate, path],
+  )
 
   const loadMerchantHealth = useCallback(async () => {
     const { data } = await getMerchantHealth()
@@ -345,6 +379,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
           failed: false,
         })
         voice(data)
+        followTools(data.tool_calls)
         if (data.pending_action || data.executed_action) {
           await Promise.all([loadActions(), loadDashboard()])
         }
@@ -368,7 +403,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
         setBusy((current) => ({ ...current, chat: false }))
       }
     },
-    [appendEntry, busy.chat, conversationId, loadActions, loadDashboard, voice],
+    [appendEntry, busy.chat, conversationId, followTools, loadActions, loadDashboard, voice],
   )
 
   const sendAudio = useCallback(

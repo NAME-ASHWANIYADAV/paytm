@@ -222,6 +222,8 @@ export interface ActionOut {
   summary_hi: string
   params: JsonObject
   target_count: number
+  /** The finding this action answers, when it came from one. */
+  insight_id: string | null
   estimated_impact: Money
   /** What sending this costs (munshiji/economics.py). */
   estimated_cost: Money
