@@ -3,5 +3,12 @@
   "installCommand": "npm install --prefix frontend",
   "buildCommand": "npm run build --prefix frontend",
   "outputDirectory": "frontend/dist",
-  "framework": "vite"
+  "framework": "vite",
+  "build": {
+    "env": {
+      "VITE_API_BASE": "https://munshiji-api-pr8v.onrender.com",
+      "VITE_MERCHANT_ID": "default",
+      "VITE_USE_FIXTURES": "auto"
+    }
+  }
 }
