@@ -120,7 +120,22 @@ export function InsightFeed({ variant = 'rail' }: InsightFeedProps): JSX.Element
       className={onPage ? 'area-insights area-insights--page' : 'panel area-insights'}
       aria-label="Insight feed"
     >
-      {onPage ? null : (
+      {onPage ? (
+        <div className="feedbar">
+          {insights ? (
+            <span className="chip chip--alert">{insights.total_impact.display} par asar</span>
+          ) : null}
+          <button
+            type="button"
+            className="btn btn--sm btn--ghost"
+            onClick={() => void refreshInsightFeed()}
+            disabled={busy.insights}
+          >
+            <RefreshIcon size={14} />
+            {busy.insights ? 'chal raha hai…' : 'refresh'}
+          </button>
+        </div>
+      ) : (
       <div className="panel__head">
         <h2 className="panel__title">
           Batata hai <small className="deva">सलाह</small>
@@ -151,7 +166,18 @@ export function InsightFeed({ variant = 'rail' }: InsightFeedProps): JSX.Element
             <InsightCard key={insight.id} insight={insight} onPage={onPage} />
           ))
         ) : (
-          <div className="empty">Abhi koi insight nahi — refresh dabaiye.</div>
+          <div className="empty">
+            <p>Abhi koi salah nahi nikli.</p>
+            <button
+              type="button"
+              className="btn btn--sm"
+              onClick={() => void refreshInsightFeed()}
+              disabled={busy.insights}
+            >
+              <RefreshIcon size={14} />
+              {busy.insights ? 'nikaal raha hoon…' : 'dobara nikaalo'}
+            </button>
+          </div>
         )}
       </div>
     </section>

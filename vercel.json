@@ -11,5 +11,5 @@
       "VITE_USE_FIXTURES": "auto"
     }
   },
-  "rewrites": [{ "source": "/((?!assets/).*)", "destination": "/index.html" }]
+  "rewrites": [{ "source": "/((?!api/|assets/).*)", "destination": "/index.html" }]
 }

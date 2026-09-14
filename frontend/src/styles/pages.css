@@ -506,3 +506,24 @@
     transition: none;
   }
 }
+
+/* The page keeps the feed's total and its refresh; it just does not need the panel chrome. */
+.feedbar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-bottom: var(--s-3);
+}
+
+/* An empty page is an invitation to act, so the control sits inside the message. */
+.insights .empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-6) var(--s-4);
+}
+
+.insights .empty p {
+  margin: 0;
+}
