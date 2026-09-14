@@ -21,7 +21,10 @@ interface Body {
  * produced confetti - visually loud, and it told you nothing. So the panel shows the graph's
  * *skeleton*: everything structural, plus the best-connected remainder up to a cap.
  */
-const MAX_BODIES = 26
+const MAX_BODIES: Record<'panel' | 'page', number> = { panel: 26, page: 90 }
+
+/** How many nodes may carry a label. The rail cannot fit more than a handful legibly. */
+const MAX_LABELS: Record<'panel' | 'page', number> = { panel: 6, page: 20 }
 
 /** Kinds that carry the story and are never culled, however sparse their edges. */
 const STRUCTURAL = new Set(['merchant', 'action', 'insight'])
@@ -40,16 +43,22 @@ function radiusOf(body: Body, lit: boolean): number {
 function chooseBodies<T extends { id: string; kind: string }>(
   nodes: readonly T[],
   degrees: Map<string, number>,
+  cap: number,
 ): T[] {
-  if (nodes.length <= MAX_BODIES) return [...nodes]
+  if (nodes.length <= cap) return [...nodes]
   const structural = nodes.filter((node) => STRUCTURAL.has(node.kind))
   const rest = nodes
     .filter((node) => !STRUCTURAL.has(node.kind))
     .sort((a, b) => (degrees.get(b.id) ?? 0) - (degrees.get(a.id) ?? 0))
-  return [...structural, ...rest].slice(0, MAX_BODIES)
+  return [...structural, ...rest].slice(0, cap)
 }
 
-export function MemoryGraph(): JSX.Element {
+export interface MemoryGraphProps {
+  /** `page` has room for the graph's actual shape; `panel` is the rail's short box. */
+  variant?: 'panel' | 'page'
+}
+
+export function MemoryGraph({ variant = 'panel' }: MemoryGraphProps): JSX.Element {
   const { graph, memory, runMemorySearch, busy } = useApp()
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const boxRef = useRef<HTMLDivElement | null>(null)
@@ -87,7 +96,7 @@ export function MemoryGraph(): JSX.Element {
     let width = box.clientWidth
     let height = box.clientHeight
 
-    const chosen = chooseBodies(graph.nodes, degrees)
+    const chosen = chooseBodies(graph.nodes, degrees, MAX_BODIES[variant])
     setShown(chosen.length)
 
     // Deterministic golden-angle seeding: the graph settles the same way at every demo.
@@ -255,7 +264,7 @@ export function MemoryGraph(): JSX.Element {
       const labelled = bodies.filter((body) => body === hoverRef.current || lit.has(body.ref))
       context.font = '600 11px "IBM Plex Sans", system-ui, sans-serif'
       context.textAlign = 'center'
-      for (const body of labelled.slice(0, 6)) {
+      for (const body of labelled.slice(0, MAX_LABELS[variant])) {
         const text = body.label.length > 22 ? `${body.label.slice(0, 21)}…` : body.label
         const metrics = context.measureText(text)
         const padding = 5
@@ -348,7 +357,7 @@ export function MemoryGraph(): JSX.Element {
       canvas.removeEventListener('click', onClick)
       canvas.removeEventListener('mouseleave', onLeave)
     }
-  }, [graph, select])
+  }, [graph, select, variant])
 
   // Whatever the last recall returned is what the graph lights up.
   useEffect(() => {

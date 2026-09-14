@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
 import App from './App'
+import { RouterProvider } from './router'
 import { AppProvider } from './state/store'
 import './styles/index.css'
 
@@ -11,7 +12,9 @@ if (!container) throw new Error('#root missing from index.html')
 createRoot(container).render(
   <StrictMode>
     <AppProvider>
-      <App />
+      <RouterProvider>
+        <App />
+      </RouterProvider>
     </AppProvider>
   </StrictMode>,
 )

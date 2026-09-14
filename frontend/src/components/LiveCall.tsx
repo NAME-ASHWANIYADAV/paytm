@@ -108,7 +108,15 @@ function Turn({ entry }: { entry: TranscriptEntry }): JSX.Element {
   )
 }
 
-export function LiveCall(): JSX.Element {
+export interface LiveCallProps {
+  /**
+   * `full` is the call page: scrollback, tool trace and suggestion chips.
+   * `strip` is every other page: the last two turns and the mic, nothing else.
+   */
+  variant?: 'full' | 'strip'
+}
+
+export function LiveCall({ variant = 'full' }: LiveCallProps): JSX.Element {
   const { transcript, send, sendAudio, busy, lastError } = useApp()
   const recorder = useRecorder()
   const [draft, setDraft] = useState('')
@@ -146,9 +154,21 @@ export function LiveCall(): JSX.Element {
   const pastCount = transcript.filter((entry) => entry.session === 'past').length
   const busyVoice = busy.transcribing
   const micLabel = recorder.recording ? 'Recording bandh karein' : 'Bolkar poochhein'
+  const compact = variant === 'strip'
+  // The strip carries the thread, not the history: the last exchange is enough to keep a viewer
+  // oriented while the presenter moves between pages.
+  const shown = compact ? transcript.slice(-2) : transcript
 
   return (
-    <section className="panel panel--marked area-call" aria-label="Live call with MunshiJi">
+    <section
+      className={
+        compact
+          ? 'panel area-call livecall livecall--strip'
+          : 'panel panel--marked area-call livecall'
+      }
+      aria-label="Live call with MunshiJi"
+    >
+      {compact ? null : (
       <div className="panel__head">
         <h2 className="panel__title">
           Live call <small className="deva">बात-चीत</small>
@@ -165,6 +185,7 @@ export function LiveCall(): JSX.Element {
           </span>
         </div>
       </div>
+      )}
 
       <div className="call__body">
         <div
@@ -176,7 +197,7 @@ export function LiveCall(): JSX.Element {
           aria-label="Conversation transcript"
         >
           {pastCount ? <div className="divider">pichli baat-cheet · 7 din pehle</div> : null}
-          {transcript.map((entry, index) => (
+          {shown.map((entry, index) => (
             <div key={entry.id} style={{ display: 'contents' }}>
               {index === pastCount && pastCount ? <div className="divider">aaj ki baat-cheet</div> : null}
               <Turn entry={entry} />
@@ -227,7 +248,7 @@ export function LiveCall(): JSX.Element {
             </button>
           </div>
 
-          <div className="prompts">
+          <div className="prompts" hidden={compact}>
             {SUGGESTIONS.map((prompt) => (
               <button key={prompt} type="button" onClick={() => void send(prompt)} disabled={busy.chat}>
                 {prompt}
@@ -235,7 +256,7 @@ export function LiveCall(): JSX.Element {
             ))}
           </div>
 
-          <div className="composer__hint">
+          <div className="composer__hint" hidden={compact}>
             <span>
               {recorder.error ? (
                 <strong>{recorder.error}</strong>

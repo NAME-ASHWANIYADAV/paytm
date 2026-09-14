@@ -1,33 +1,41 @@
-import { ActionQueue } from './components/ActionQueue'
+import { CallStrip } from './components/CallStrip'
 import { Header } from './components/Header'
-import { InsightFeed } from './components/InsightFeed'
-import { LiveCall } from './components/LiveCall'
-import { MemoryGraph } from './components/MemoryGraph'
-import { TodayNumbers } from './components/TodayNumbers'
+import { LedgerTabs } from './components/LedgerTabs'
+import { ActionsPage } from './pages/ActionsPage'
+import { AdvicePage } from './pages/AdvicePage'
+import { CallPage } from './pages/CallPage'
+import { HealthPage } from './pages/HealthPage'
+import { MemoryPage } from './pages/MemoryPage'
+import { useRoute } from './router'
 
 /**
- * The merchant companion screen: one full-height dashboard, no routing.
- *   left   — the live call (the hero)
- *   middle — today's numbers over the action queue
- *   right  — the ranked insight feed over the memory graph
+ * The shell: the shop's header, the ledger tabs, and whichever page they select.
+ *
+ * An unrecognised path falls through to the call page rather than an error screen — a mistyped
+ * URL during a demo should land somewhere useful.
  */
 export default function App(): JSX.Element {
+  const { path } = useRoute()
+
+  const page =
+    path === '/salah' ? (
+      <AdvicePage />
+    ) : path === '/kaam' ? (
+      <ActionsPage />
+    ) : path === '/yaaddasht' ? (
+      <MemoryPage />
+    ) : path === '/sehat' ? (
+      <HealthPage />
+    ) : (
+      <CallPage />
+    )
+
   return (
-    <div className="shell">
+    <div className="shell shell--paged">
       <Header />
-      <main className="deck">
-        <div className="col col--call">
-          <LiveCall />
-        </div>
-        <div className="col col--mid">
-          <TodayNumbers />
-          <ActionQueue />
-        </div>
-        <div className="col col--right">
-          <InsightFeed />
-          <MemoryGraph />
-        </div>
-      </main>
+      <LedgerTabs />
+      {page}
+      {path === '/' ? null : <CallStrip />}
     </div>
   )
 }

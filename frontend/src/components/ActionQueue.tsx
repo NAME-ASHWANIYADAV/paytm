@@ -171,14 +171,25 @@ function ActionCard({ action }: { action: ActionOut }): JSX.Element {
   )
 }
 
-export function ActionQueue(): JSX.Element {
+export interface ActionQueueProps {
+  /** `rail` keeps the panel chrome; `page` drops it because the page supplies its own. */
+  variant?: 'rail' | 'page'
+}
+
+export function ActionQueue({ variant = 'rail' }: ActionQueueProps): JSX.Element {
   const { actions } = useApp()
   const list = actions?.actions ?? []
   const pending = list.filter((action) => action.status === 'pending_approval')
   const done = list.filter((action) => action.status !== 'pending_approval')
 
+  const onPage = variant === 'page'
+
   return (
-    <section className="panel area-actions" aria-label="Action queue">
+    <section
+      className={onPage ? 'area-actions area-actions--page' : 'panel area-actions'}
+      aria-label="Action queue"
+    >
+      {onPage ? null : (
       <div className="panel__head">
         <h2 className="panel__title">
           Kar deta hai <small className="deva">काम की कतार</small>
@@ -191,8 +202,9 @@ export function ActionQueue(): JSX.Element {
           <span className="chip chip--good">sab clear</span>
         )}
       </div>
+      )}
 
-      <div className="actions scroll">
+      <div className={onPage ? 'actions' : 'actions scroll'}>
         {list.length ? (
           <>
             {pending.map((action) => (

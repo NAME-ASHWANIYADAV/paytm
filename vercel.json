@@ -10,5 +10,6 @@
       "VITE_MERCHANT_ID": "default",
       "VITE_USE_FIXTURES": "auto"
     }
-  }
+  },
+  "rewrites": [{ "source": "/((?!assets/).*)", "destination": "/index.html" }]
 }

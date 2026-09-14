@@ -1,0 +1,508 @@
+/* Page shell, ledger tabs, and the layouts each page uses. Tokens only — see tokens.css. */
+
+.shell--paged {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  padding: 12px 16px 14px;
+  gap: var(--s-2);
+}
+
+/* ================================================================ ledger tabs */
+
+.tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  padding-inline: var(--s-4);
+  /* Sits on the page surface's top edge; the active tab erases this line beneath itself. */
+  margin-bottom: -1px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: var(--s-2) var(--s-4) 7px;
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  border-radius: var(--r-md) var(--r-md) 0 0;
+  background: var(--panel-sunk);
+  color: var(--ink-3);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+
+.tab:hover {
+  background: var(--panel-inset);
+  color: var(--ink-2);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+/* Joined to the page below it, and marked by the khata's red. */
+.tab--on {
+  background: var(--panel);
+  border-bottom-color: var(--panel);
+  border-top: 3px solid var(--red);
+  padding-top: calc(var(--s-2) - 2px);
+  color: var(--ink);
+}
+
+.tab__hi {
+  font-size: var(--t-md);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.tab__en {
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.tab--on .tab__en {
+  color: var(--red-ink);
+}
+
+/* ===================================================================== page */
+
+.page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 0 var(--r-lg) var(--r-lg) var(--r-lg);
+  box-shadow: var(--shadow-panel);
+  overflow: hidden;
+}
+
+.page__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+  padding: var(--s-4) var(--s-5) var(--s-3);
+  border-bottom: 3px double var(--rule-strong);
+}
+
+.page__title {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: 700;
+  letter-spacing: var(--track-tight);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.page__lede {
+  font-size: var(--t-base);
+  color: var(--ink-3);
+  margin: 0;
+  max-width: 62ch;
+}
+
+.page__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--s-5);
+}
+
+/* ============================================================= call page + strip */
+
+.page__body--call {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: var(--s-4);
+  align-items: start;
+  padding: var(--s-4);
+}
+
+@media (max-width: 1100px) {
+  .page__body--call {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* The conversation, reduced to its thread. Fixed height so pages above it never reflow. */
+.callstrip {
+  flex: none;
+  height: 104px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-top: 3px double var(--rule-strong);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-panel);
+  overflow: hidden;
+  display: flex;
+}
+
+.callstrip .area-call {
+  flex: 1;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  min-height: 0;
+}
+
+.livecall--strip .turn__bubble {
+  font-size: var(--t-base);
+  padding: var(--s-2) var(--s-3);
+}
+
+.livecall--strip .turn__who {
+  display: none;
+}
+
+/* ================================================================ health page */
+
+.health {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: var(--s-5);
+  align-items: start;
+}
+
+@media (max-width: 1000px) {
+  .health {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dial {
+  padding: var(--s-5);
+  border: 1px solid var(--rule-strong);
+  border-left: 4px solid var(--gold);
+  border-radius: var(--r-lg);
+  background: var(--panel-inset);
+  text-align: center;
+}
+
+.dial--watch {
+  border-left-color: var(--gold);
+}
+
+.dial--strained {
+  border-left-color: var(--red);
+}
+
+.dial__score {
+  font-family: var(--font-display);
+  font-size: clamp(56px, 7vw, 84px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: var(--track-tight);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.dial__of {
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-top: var(--s-1);
+}
+
+.dial__band {
+  margin-top: var(--s-3);
+  font-size: var(--t-lg);
+  font-weight: 600;
+  color: var(--gold-ink);
+}
+
+.dial__band-en {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+
+.dial__delta {
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.dial__delta span {
+  display: block;
+  font-family: var(--font-text);
+  font-weight: 400;
+  color: var(--ink-3);
+}
+
+.dial__delta--down {
+  color: var(--red-ink);
+}
+
+.dial__delta--up {
+  color: var(--green-ink);
+}
+
+.dial__note {
+  margin: var(--s-4) 0 0;
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--t-xs);
+  line-height: 1.5;
+  color: var(--ink-3);
+  text-align: left;
+}
+
+.health__dims {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.dim {
+  padding: var(--s-4);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  background: var(--panel);
+}
+
+.dim--weakest {
+  border-color: var(--red-edge);
+  background: var(--red-wash);
+}
+
+.dim__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.dim__label {
+  margin: 0;
+  font-size: var(--t-md);
+  font-weight: 600;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+
+.dim__hi {
+  font-size: var(--t-sm);
+  font-weight: 400;
+  color: var(--ink-3);
+}
+
+.dim__score {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.dim__track {
+  height: 6px;
+  margin: var(--s-2) 0 var(--s-3);
+  border-radius: 99px;
+  background: var(--panel-sunk);
+  overflow: hidden;
+}
+
+.dim__fill {
+  height: 100%;
+  background: var(--ink-2);
+}
+
+.dim--weakest .dim__fill {
+  background: var(--red);
+}
+
+.dim__evidence {
+  margin: 0 0 var(--s-1);
+  font-size: var(--t-sm);
+  color: var(--ink);
+}
+
+.dim__reason {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-sm);
+  color: var(--ink-3);
+  max-width: 68ch;
+}
+
+.dim__weights {
+  display: flex;
+  gap: var(--s-4);
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.dim__flag {
+  color: var(--red-ink);
+  font-weight: 600;
+}
+
+/* =============================================================== actions page */
+
+.refusals {
+  margin-top: var(--s-6);
+  padding-top: var(--s-4);
+  border-top: 3px double var(--rule-strong);
+}
+
+.refusals__title {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0 0 var(--s-1);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 700;
+}
+
+.refusals__count {
+  font-family: var(--font-mono);
+  font-size: var(--t-sm);
+  padding: 1px 8px;
+  border-radius: 99px;
+  background: var(--red-wash);
+  color: var(--red-ink);
+  border: 1px solid var(--red-edge);
+}
+
+.refusals__lede {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-sm);
+  color: var(--ink-3);
+  max-width: 68ch;
+}
+
+.refusals__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--s-2);
+}
+
+.refusal {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--red);
+  border-radius: var(--r-sm);
+  background: var(--panel-inset);
+}
+
+.refusal__rule {
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ================================================================ memory page */
+
+.page__body--memory {
+  padding: 0;
+  display: flex;
+}
+
+.page__body--memory .area-memory {
+  flex: 1;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+/* On the page the constellation takes the height it needs and the hits read beside it. */
+.page__body--memory .memory__body {
+  grid-template-rows: none;
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+}
+
+.page__body--memory .memory__canvas {
+  border-bottom: none;
+  border-right: 1px solid var(--rule);
+}
+
+/* ================================================================ advice page */
+
+.insight--page {
+  padding: var(--s-4) var(--s-5);
+}
+
+.insight--page .insight__title {
+  font-size: var(--t-lg);
+}
+
+.insight__metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: var(--s-2) var(--s-4);
+  margin: var(--s-3) 0 0;
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--rule);
+}
+
+.insight__metrics div {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.insight__metrics dt {
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.insight__metrics dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--t-sm);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 880px) {
+  .shell--paged {
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .page__body {
+    padding: var(--s-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab {
+    transition: none;
+  }
+}

@@ -42,7 +42,13 @@ function metricChips(metrics: Record<string, JsonValue>): Array<{ key: string; l
     })
 }
 
-function InsightCard({ insight }: { insight: InsightOut }): JSX.Element {
+function InsightCard({
+  insight,
+  onPage = false,
+}: {
+  insight: InsightOut
+  onPage?: boolean
+}): JSX.Element {
   const { send, busy } = useApp()
   const chips = metricChips(insight.metrics)
   const prompt = insight.suggested_tool
@@ -50,7 +56,9 @@ function InsightCard({ insight }: { insight: InsightOut }): JSX.Element {
     : null
 
   return (
-    <article className={`insight insight--${insight.severity}`}>
+    <article
+      className={`insight insight--${insight.severity}${onPage ? ' insight--page' : ''}`}
+    >
       <div className="insight__head">
         <span className="sev">
           <span aria-hidden="true">{SEVERITY_GLYPH[insight.severity] ?? '·'}</span>
@@ -96,12 +104,23 @@ function InsightCard({ insight }: { insight: InsightOut }): JSX.Element {
   )
 }
 
-export function InsightFeed(): JSX.Element {
+export interface InsightFeedProps {
+  /** `rail` keeps the panel chrome; `page` drops it and opens each card up. */
+  variant?: 'rail' | 'page'
+}
+
+export function InsightFeed({ variant = 'rail' }: InsightFeedProps): JSX.Element {
   const { insights, refreshInsightFeed, busy } = useApp()
   const list = insights?.insights ?? []
 
+  const onPage = variant === 'page'
+
   return (
-    <section className="panel area-insights" aria-label="Insight feed">
+    <section
+      className={onPage ? 'area-insights area-insights--page' : 'panel area-insights'}
+      aria-label="Insight feed"
+    >
+      {onPage ? null : (
       <div className="panel__head">
         <h2 className="panel__title">
           Batata hai <small className="deva">सलाह</small>
@@ -124,10 +143,13 @@ export function InsightFeed(): JSX.Element {
           </button>
         </div>
       </div>
+      )}
 
-      <div className="insights scroll">
+      <div className={onPage ? 'insights' : 'insights scroll'}>
         {list.length ? (
-          list.map((insight) => <InsightCard key={insight.id} insight={insight} />)
+          list.map((insight) => (
+            <InsightCard key={insight.id} insight={insight} onPage={onPage} />
+          ))
         ) : (
           <div className="empty">Abhi koi insight nahi — refresh dabaiye.</div>
         )}
