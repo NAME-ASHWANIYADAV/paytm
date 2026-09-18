@@ -5,12 +5,9 @@ const config: CapacitorConfig = {
   appName: 'MunshiJi',
   webDir: 'dist',
   server: {
-    // ============================================================
-    // !!! PLACEHOLDER — REPLACE WITH THE REAL VERCEL URL !!!
-    // !!! The APK loads THIS url as the entire app.       !!!
-    // !!! After changing it: npx cap sync android, rebuild.!!!
-    // ============================================================
-    url: 'https://PLACEHOLDER-VERCEL-URL.vercel.app',
+    // The APK is a thin wrapper: the WebView loads the deployed app, so every release of the
+    // site is a release of the app. After changing this: npx cap sync android, then rebuild.
+    url: 'https://paytm-nu-seven.vercel.app',
     cleartext: false,
   },
   android: {
