@@ -11,6 +11,22 @@
 const cachedVoice = new Map<string, SpeechSynthesisVoice | null>()
 let activeAudio: HTMLAudioElement | null = null
 
+type CapacitorTtsPlugin = {
+  speak: (options: { text: string; lang: string; rate?: number }) => Promise<void>
+  stop: () => Promise<void>
+}
+
+/** Native Android TTS when running inside the Capacitor APK — the WebView has no
+    speechSynthesis at all, so without this the app is mute exactly where it calls itself an
+    app. Reached via the window bridge only; the web bundle imports nothing. */
+function capacitorTts(): CapacitorTtsPlugin | null {
+  if (typeof window === 'undefined') return null
+  const bridge = (
+    window as unknown as { Capacitor?: { Plugins?: { TextToSpeech?: CapacitorTtsPlugin } } }
+  ).Capacitor
+  return bridge?.Plugins?.TextToSpeech ?? null
+}
+
 function normalise(tag: string): string {
   return tag.toLowerCase().replace('_', '-')
 }
@@ -62,6 +78,7 @@ export function primeVoices(): () => void {
 }
 
 export function stopSpeaking(): void {
+  void capacitorTts()?.stop().catch(() => {})
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     window.speechSynthesis.cancel()
   }
@@ -73,7 +90,16 @@ export function stopSpeaking(): void {
 }
 
 export function speakText(text: string, language = 'hi-IN'): void {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window) || !text.trim()) return
+  if (!text.trim()) return
+  const native = capacitorTts()
+  if (native) {
+    void native.stop().catch(() => {})
+    void native.speak({ text, lang: language, rate: 0.98 }).catch(() => {
+      /* no voice for this language on the device — the text is on screen regardless */
+    })
+    return
+  }
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
   window.speechSynthesis.cancel()
   const utterance = new SpeechSynthesisUtterance(text)
   const voice = pickVoice(language)

@@ -4,7 +4,7 @@ import { MicIcon, SendIcon, StopIcon } from '../components/Icons'
 import { Waveform } from '../components/Waveform'
 import { useRecorder } from '../hooks/useRecorder'
 import { useSpeechInput } from '../hooks/useSpeechInput'
-import { formatClock, speechTag, SUGGESTIONS, useLang } from '../i18n'
+import { speechTag, SUGGESTIONS, useLang } from '../i18n'
 import { Link } from '../router'
 import { useApp, type TranscriptEntry } from '../state/store'
 
@@ -71,8 +71,6 @@ function Turn({ entry }: { entry: TranscriptEntry }): JSX.Element {
     >
       <div className="turn__who">
         <span>{merchant ? t('chat.you') : t('chat.munshi')}</span>
-        <span aria-hidden="true">·</span>
-        <span className="tabular">{formatClock(entry.at)}</span>
         {!merchant && entry.provider ? (
           <span className={`chip chip--${entry.provider === 'live' ? 'live' : 'local'}`}>{entry.provider}</span>
         ) : null}
@@ -193,7 +191,9 @@ export function MunshijiPage(): JSX.Element {
       </div>
 
       <form className="composer" onSubmit={onSubmit}>
-        <Waveform analyserRef={recorder.analyserRef} active={recorder.recording} />
+        {speech.supported ? null : (
+          <Waveform analyserRef={recorder.analyserRef} active={recorder.recording} />
+        )}
 
         <div className="prompts">
           {SUGGESTIONS[lang].map((prompt) => (
