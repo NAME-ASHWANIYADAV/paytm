@@ -26,6 +26,7 @@ import {
   getInsights,
   getKhata,
   getMemoryGraph,
+  activeMerchant,
   MERCHANT_ID,
   postChat,
   refreshInsights,
@@ -214,6 +215,29 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
     return primeVoices()
   }, [hasSession, loadAll])
 
+  // Switching shops must feel like opening a different app: when the signed-in merchant
+  // changes (logout → another login), drop every panel and the running conversation so
+  // Gupta's pharmacy never opens onto Sharma's chat. The canned "past turns" belong to the
+  // fixture shop only — a real merchant id starts with a clean transcript even on first login.
+  const merchantKey = session?.merchantId ?? null
+  const lastMerchant = useRef<string | null>(null)
+  useEffect(() => {
+    if (merchantKey === null) return
+    const fromBoot = lastMerchant.current === null
+    const changed = !fromBoot && merchantKey !== lastMerchant.current
+    lastMerchant.current = merchantKey
+    if (!changed && !(fromBoot && merchantKey !== MERCHANT_ID)) return
+    setDashboard(null)
+    setKhata(null)
+    setInsights(null)
+    setActions(null)
+    setGraph(null)
+    setMemory(null)
+    setConversationId(null)
+    setTranscript([])
+    if (changed) void loadAll()
+  }, [merchantKey, loadAll])
+
   useEffect(() => subscribeClientStatus(setClientStatus), [])
 
   // The latch heals in the background (client.ts probe). The instant it lifts, replace every
@@ -295,7 +319,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       return undefined
     }
     return startLiveUpdates({
-      merchantId: MERCHANT_ID,
+      merchantId: activeMerchant(),
       onEvent: handleEvent,
       onStatus: setLiveStatus,
     })
@@ -351,7 +375,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       setBusy((current) => ({ ...current, chat: true }))
       try {
         const { data } = await postChat({
-          merchant_id: MERCHANT_ID,
+          merchant_id: activeMerchant(),
           text: trimmed,
           conversation_id: conversationId,
           language: speechTag(lang),
@@ -508,7 +532,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
 
   const value = useMemo<AppValue>(
     () => ({
-      merchantId: MERCHANT_ID,
+      merchantId: activeMerchant(),
       health,
       dashboard,
       khata,

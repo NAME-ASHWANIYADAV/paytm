@@ -4,7 +4,7 @@ import { MicIcon, SendIcon, StopIcon } from '../components/Icons'
 import { Waveform } from '../components/Waveform'
 import { useRecorder } from '../hooks/useRecorder'
 import { useSpeechInput } from '../hooks/useSpeechInput'
-import { speechTag, SUGGESTIONS, useLang } from '../i18n'
+import { speechTag, suggestionsFor, useLang } from '../i18n'
 import { Link } from '../router'
 import { useApp, type TranscriptEntry } from '../state/store'
 
@@ -101,8 +101,9 @@ function Turn({ entry }: { entry: TranscriptEntry }): JSX.Element {
 }
 
 export function MunshijiPage(): JSX.Element {
-  const { t, lang } = useLang()
-  const { transcript, send, sendAudio, busy, lastError } = useApp()
+  const { t, lang, session } = useLang()
+  const { transcript, send, sendAudio, busy, lastError, dashboard } = useApp()
+  const shopCategory = dashboard?.merchant.category ?? session?.category
   const recorder = useRecorder()
   const speech = useSpeechInput()
   const [draft, setDraft] = useState('')
@@ -196,7 +197,7 @@ export function MunshijiPage(): JSX.Element {
         )}
 
         <div className="prompts">
-          {SUGGESTIONS[lang].map((prompt) => (
+          {suggestionsFor(lang, shopCategory).map((prompt) => (
             <button
               key={prompt}
               type="button"

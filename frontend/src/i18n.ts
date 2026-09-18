@@ -22,11 +22,19 @@ import {
   type ReactNode,
 } from 'react'
 
+import { setActiveMerchant } from './api/client'
+
 export type Lang = 'hi' | 'en'
 
 export interface Session {
   merchantId: string
   lang: Lang
+  /** Identity captured at login, so every screen knows its shop before the first fetch. */
+  shopName?: string
+  ownerName?: string
+  category?: string
+  phone?: string
+  token?: string
 }
 
 const SESSION_KEY = 'munshiji.session'
@@ -37,7 +45,15 @@ export function readSession(): Session | null {
     if (!raw) return null
     const parsed = JSON.parse(raw) as Partial<Session>
     if (parsed.lang !== 'hi' && parsed.lang !== 'en') return null
-    return { merchantId: parsed.merchantId || 'default', lang: parsed.lang }
+    return {
+      merchantId: parsed.merchantId || 'default',
+      lang: parsed.lang,
+      shopName: parsed.shopName,
+      ownerName: parsed.ownerName,
+      category: parsed.category,
+      phone: parsed.phone,
+      token: parsed.token,
+    }
   } catch {
     return null
   }
@@ -117,6 +133,16 @@ const STRINGS = {
     'login.continue': 'आगे बढ़ें',
     'login.hindi': 'हिंदी',
     'login.english': 'English',
+    'login.phone': 'फ़ोन नंबर',
+    'login.phoneHint': 'जैसे 98110 34572',
+    'login.password': 'पासवर्ड',
+    'login.signin': 'लॉगिन करें',
+    'login.signingIn': 'जाँच रहे हैं…',
+    'login.wrong': 'फ़ोन नंबर या पासवर्ड ग़लत है',
+    'login.offline': 'सर्वर से संपर्क नहीं हो पाया — डेमो मोड में Sharma General Store खुलेगी',
+    'login.demoTitle': 'डेमो दुकानें',
+    'login.demoHint': 'किसी भी दुकान पर टैप करें — नंबर-पासवर्ड अपने आप भर जाएगा',
+    'login.demoOpen': 'डेमो मोड में खोलें',
     // nav
     'nav.dukaan': 'दुकान',
     'nav.munshiji': 'मुंशीजी',
@@ -215,6 +241,16 @@ const STRINGS = {
     'login.continue': 'Continue',
     'login.hindi': 'हिंदी',
     'login.english': 'English',
+    'login.phone': 'Phone number',
+    'login.phoneHint': 'e.g. 98110 34572',
+    'login.password': 'Password',
+    'login.signin': 'Sign in',
+    'login.signingIn': 'Checking…',
+    'login.wrong': 'Phone number or password is incorrect',
+    'login.offline': 'Could not reach the server — demo mode opens Sharma General Store',
+    'login.demoTitle': 'Demo shops',
+    'login.demoHint': 'Tap any shop — phone and password fill in automatically',
+    'login.demoOpen': 'Open in demo mode',
     'nav.dukaan': 'Shop',
     'nav.munshiji': 'MunshiJi',
     'nav.khata': 'Khata',
@@ -318,6 +354,48 @@ export const SUGGESTIONS: Record<Lang, readonly string[]> = {
   ],
 }
 
+/** Shop-type flavoured chips: a chemist asks about expiry, a mobile shop about dead covers. */
+const CATEGORY_SUGGESTIONS: Record<string, Record<Lang, readonly string[]>> = {
+  pharmacy: {
+    hi: [
+      'आज का धंधा कैसा रहा?',
+      'कौन सी दवाइयाँ expiry के पास हैं?',
+      'किस-किस से कितना उधार बाकी है?',
+      'कौन से रेगुलर मरीज़ आने बंद हो गए?',
+      'स्टॉक में क्या खत्म हो रहा है?',
+    ],
+    en: [
+      'How did today go?',
+      'Which medicines are close to expiry?',
+      'Who owes me udhaar, and how much?',
+      'Which regular patients stopped coming?',
+      'What stock is running out?',
+    ],
+  },
+  mobile: {
+    hi: [
+      'आज का धंधा कैसा रहा?',
+      'कौन से कवर-केस पड़े-पड़े धूल खा रहे हैं?',
+      'सबसे ज़्यादा मार्जिन किस चीज़ पे है?',
+      'पुराने ग्राहक कहाँ गए?',
+      'स्टॉक में क्या खत्म हो रहा है?',
+    ],
+    en: [
+      'How did today go?',
+      'Which covers are gathering dust on the shelf?',
+      'What earns me the best margin?',
+      'Where did my regulars go?',
+      'What stock is running out?',
+    ],
+  },
+}
+
+/** The chips for this shop type — kirana (and anything unknown) gets the classic set. */
+export function suggestionsFor(lang: Lang, category?: string): readonly string[] {
+  if (category && CATEGORY_SUGGESTIONS[category]) return CATEGORY_SUGGESTIONS[category][lang]
+  return SUGGESTIONS[lang]
+}
+
 /* ────────────────────────────────────────────────────────────────────────────
  * Context
  * ──────────────────────────────────────────────────────────────────────────── */
@@ -327,8 +405,8 @@ interface LangValue {
   lang: Lang
   t: (key: StringKey) => string
   money: (paise: number) => string
-  /** Login: create the session and enter the app. */
-  start: (lang: Lang) => void
+  /** Login: create the session (shop identity + language) and enter the app. */
+  start: (session: Session) => void
   /** Provider sheet: back to the language choice. An explicit moment, not a live re-render. */
   signOut: () => void
 }
@@ -336,20 +414,26 @@ interface LangValue {
 const LangContext = createContext<LangValue | null>(null)
 
 export function LangProvider({ children }: { children: ReactNode }): JSX.Element {
-  const [session, setSession] = useState<Session | null>(readSession)
+  const [session, setSession] = useState<Session | null>(() => {
+    const stored = readSession()
+    // Point the API client at the signed-in shop before the first fetch fires.
+    setActiveMerchant(stored?.merchantId ?? null)
+    return stored
+  })
   const lang: Lang = session?.lang ?? 'hi'
 
   useEffect(() => {
     document.documentElement.lang = lang
   }, [lang])
 
-  const start = useCallback((chosen: Lang) => {
-    const next = { merchantId: 'default', lang: chosen }
+  const start = useCallback((next: Session) => {
+    setActiveMerchant(next.merchantId)
     writeSession(next)
     setSession(next)
   }, [])
 
   const signOut = useCallback(() => {
+    setActiveMerchant(null)
     writeSession(null)
     setSession(null)
   }, [])

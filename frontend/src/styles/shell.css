@@ -45,15 +45,12 @@
 }
 
 .appbar__mark {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: var(--primary-dark);
-  color: #ffffff;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
   display: grid;
   place-items: center;
-  font-size: 17px;
-  font-weight: 700;
+  overflow: hidden;
   flex: none;
 }
 
@@ -320,16 +317,12 @@
 }
 
 .login__mark {
-  width: 76px;
-  height: 76px;
+  width: 64px;
+  height: 64px;
   margin: 0 auto var(--s-4);
-  border-radius: 22px;
-  background: var(--primary-dark);
-  color: #ffffff;
+  border-radius: 17px;
   display: grid;
   place-items: center;
-  font-size: 38px;
-  font-weight: 700;
   box-shadow: var(--shadow-raised);
 }
 
@@ -417,6 +410,154 @@
   font-size: var(--t-xs);
   letter-spacing: var(--track-label);
   text-transform: uppercase;
+}
+
+/* Sign-in form fields */
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  border: 1.5px solid var(--rule-strong);
+  border-radius: var(--r-md);
+  background: var(--panel);
+  padding: 0 var(--s-4);
+  transition: border-color var(--dur-fast) var(--ease);
+}
+
+.field:focus-within {
+  border-color: var(--primary-dark);
+}
+
+.field__prefix {
+  color: var(--ink-3);
+  font-weight: 600;
+  font-size: var(--t-md);
+  flex: none;
+}
+
+.field__input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-md);
+  padding: var(--s-4) 0;
+}
+
+.login__error {
+  color: var(--bad, #c02929);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.login__offline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  background: var(--primary-wash);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  padding: var(--s-4);
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+}
+
+/* Demo-shops strip */
+
+.login__demo {
+  margin-top: var(--s-4);
+  background: var(--panel);
+  border: 1px dashed var(--rule-strong);
+  border-radius: var(--r-lg);
+  padding: var(--s-4);
+}
+
+.login__demohead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.login__demotitle {
+  font-size: var(--t-label);
+  text-transform: uppercase;
+  letter-spacing: var(--track-label);
+  color: var(--ink-3);
+}
+
+.login__demopass {
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+
+.login__demopass b {
+  color: var(--primary-dark);
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+
+.login__demohint {
+  margin-top: var(--s-1);
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+
+.login__shops {
+  margin-top: var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.shopcard {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  text-align: left;
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  background: var(--page);
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+
+.shopcard:active,
+.shopcard:hover {
+  border-color: var(--primary);
+  background: var(--primary-wash);
+}
+
+.shopcard__icon {
+  font-size: 22px;
+  flex: none;
+}
+
+.shopcard__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.shopcard__body b {
+  font-size: var(--t-sm);
+  color: var(--ink);
+}
+
+.shopcard__body small {
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shopcard__phone {
+  font-family: var(--font-mono, ui-monospace, monospace);
 }
 
 /* -------------------------------------------------------------------- pages */

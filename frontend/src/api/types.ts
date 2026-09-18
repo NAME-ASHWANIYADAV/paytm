@@ -503,3 +503,25 @@ export interface MerchantHealthOut {
   dimensions: HealthDimensionOut[]
   as_of: string
 }
+
+/* ── auth ─────────────────────────────────────────────────────────────── */
+
+export interface ShopCard {
+  merchant_id: string
+  shop_name: string
+  owner_name: string
+  category: string
+  city: string
+  locality: string
+  phone: string
+}
+
+export interface ShopsOut {
+  shops: ShopCard[]
+  demo_password: string
+}
+
+export interface LoginOut {
+  merchant: MerchantOut
+  token: string
+}

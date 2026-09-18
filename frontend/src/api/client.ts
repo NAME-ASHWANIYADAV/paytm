@@ -39,6 +39,8 @@ import type {
   KhataOut,
   MemorySearchIn,
   MemorySearchOut,
+  LoginOut,
+  ShopsOut,
   SpeakIn,
   SpeakOut,
   TranscribeOut,
@@ -71,6 +73,21 @@ const API_BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
  * against every live route and silently latch the whole session to demo data.
  */
 export const MERCHANT_ID = import.meta.env.VITE_MERCHANT_ID || 'default'
+
+/**
+ * The shop this session is signed into. `'default'` until a login succeeds, after which every
+ * endpoint below addresses the real merchant id — that is what makes three seeded shops three
+ * different apps rather than three names for the first one.
+ */
+let activeMerchantId: string = MERCHANT_ID
+
+export function setActiveMerchant(id: string | null | undefined): void {
+  activeMerchantId = id && id.trim() ? id : MERCHANT_ID
+}
+
+export function activeMerchant(): string {
+  return activeMerchantId
+}
 
 function readMode(): FixtureMode {
   const raw = (import.meta.env.VITE_USE_FIXTURES ?? 'auto').toLowerCase().trim()
@@ -217,12 +234,12 @@ export function getHealth(): Promise<ApiResult<HealthOut>> {
   return resolve(() => call<HealthOut>('/api/health', { timeoutMs: 30_000 }), demoHealth)
 }
 
-export function getDashboard(merchantId = MERCHANT_ID): Promise<ApiResult<DashboardOut>> {
+export function getDashboard(merchantId = activeMerchantId): Promise<ApiResult<DashboardOut>> {
   return resolve(() => call<DashboardOut>(`/api/merchant/${merchantId}/dashboard`), demoDashboard)
 }
 
 export function getMerchantHealth(
-  merchantId = MERCHANT_ID,
+  merchantId = activeMerchantId,
 ): Promise<ApiResult<MerchantHealthOut>> {
   return resolve(
     () => call<MerchantHealthOut>(`/api/merchant/${merchantId}/health`),
@@ -230,22 +247,22 @@ export function getMerchantHealth(
   )
 }
 
-export function getKhata(merchantId = MERCHANT_ID): Promise<ApiResult<KhataOut>> {
+export function getKhata(merchantId = activeMerchantId): Promise<ApiResult<KhataOut>> {
   return resolve(() => call<KhataOut>(`/api/khata/${merchantId}`), demoKhata)
 }
 
-export function getInsights(merchantId = MERCHANT_ID): Promise<ApiResult<InsightListOut>> {
+export function getInsights(merchantId = activeMerchantId): Promise<ApiResult<InsightListOut>> {
   return resolve(() => call<InsightListOut>(`/api/insights/${merchantId}`), demoInsights)
 }
 
-export function refreshInsights(merchantId = MERCHANT_ID): Promise<ApiResult<InsightListOut>> {
+export function refreshInsights(merchantId = activeMerchantId): Promise<ApiResult<InsightListOut>> {
   return resolve(
     () => call<InsightListOut>(`/api/insights/${merchantId}/refresh`, { method: 'POST', timeoutMs: 12_000 }),
     demoRefreshInsights,
   )
 }
 
-export function getActions(merchantId = MERCHANT_ID): Promise<ApiResult<ActionListOut>> {
+export function getActions(merchantId = activeMerchantId): Promise<ApiResult<ActionListOut>> {
   return resolve(() => call<ActionListOut>(`/api/actions/${merchantId}`), demoActions)
 }
 
@@ -270,12 +287,14 @@ export function rejectAction(actionId: string, reason = ''): Promise<ApiResult<A
 
 export function postChat(input: ChatIn): Promise<ApiResult<TurnResultOut>> {
   return resolve(
-    () => call<TurnResultOut>('/api/chat', { method: 'POST', body: input, timeoutMs: 45_000 }),
+    // 90s: a shop's first turn after a cold boot pays for provider warm-up + a fresh memory
+    // graph, and a slow true answer beats a fast fixture one that contradicts the live panels.
+    () => call<TurnResultOut>('/api/chat', { method: 'POST', body: input, timeoutMs: 90_000 }),
     () => demoChat(input.text),
   )
 }
 
-export function transcribe(audio: Blob, merchantId = MERCHANT_ID): Promise<ApiResult<TranscribeOut>> {
+export function transcribe(audio: Blob, merchantId = activeMerchantId): Promise<ApiResult<TranscribeOut>> {
   return resolve(
     () => {
       const formData = new FormData()
@@ -294,11 +313,11 @@ export function speak(input: SpeakIn): Promise<ApiResult<SpeakOut>> {
   )
 }
 
-export function getMemoryGraph(merchantId = MERCHANT_ID): Promise<ApiResult<GraphOut>> {
+export function getMemoryGraph(merchantId = activeMerchantId): Promise<ApiResult<GraphOut>> {
   return resolve(() => call<GraphOut>(`/api/memory/${merchantId}/graph`), demoGraph)
 }
 
-export function searchMemory(input: MemorySearchIn, merchantId = MERCHANT_ID): Promise<ApiResult<MemorySearchOut>> {
+export function searchMemory(input: MemorySearchIn, merchantId = activeMerchantId): Promise<ApiResult<MemorySearchOut>> {
   return resolve(
     () => call<MemorySearchOut>(`/api/memory/${merchantId}/search`, { method: 'POST', body: input, timeoutMs: 8000 }),
     () => demoSearch(input.query, input.limit ?? 6),
@@ -306,7 +325,74 @@ export function searchMemory(input: MemorySearchIn, merchantId = MERCHANT_ID): P
 }
 
 /** URL of the SSE stream; `null` when the session is running on fixtures. */
-export function eventsUrl(merchantId = MERCHANT_ID): string | null {
+export function eventsUrl(merchantId = activeMerchantId): string | null {
   if (MODE === 'always' || status.usingFixtures) return null
   return `${API_BASE}/api/events/${merchantId}`
+}
+
+/* ------------------------------------------------------------------- auth */
+
+/** The seeded shops, mirrored from `seed/profiles.py` for when the API is unreachable. */
+const OFFLINE_SHOPS: ShopsOut = {
+  shops: [
+    {
+      merchant_id: 'default',
+      shop_name: 'Sharma General Store',
+      owner_name: 'Rajesh Sharma',
+      category: 'kirana',
+      city: 'Delhi',
+      locality: 'Lajpat Nagar',
+      phone: '+919811034572',
+    },
+    {
+      merchant_id: '',
+      shop_name: 'Gupta Medical Store',
+      owner_name: 'Anita Gupta',
+      category: 'pharmacy',
+      city: 'Delhi',
+      locality: 'Malviya Nagar',
+      phone: '+919873046521',
+    },
+    {
+      merchant_id: '',
+      shop_name: 'Khan Mobile Point',
+      owner_name: 'Imran Khan',
+      category: 'mobile',
+      city: 'Delhi',
+      locality: 'Karol Bagh',
+      phone: '+919811207344',
+    },
+  ],
+  demo_password: 'munshi123',
+}
+
+export function getShops(): Promise<ApiResult<ShopsOut>> {
+  return resolve(
+    () => call<ShopsOut>('/api/auth/shops', { timeoutMs: 12_000 }),
+    () => OFFLINE_SHOPS,
+  )
+}
+
+export type LoginResult =
+  | { outcome: 'ok'; data: LoginOut }
+  | { outcome: 'invalid' }
+  | { outcome: 'offline' }
+
+/**
+ * Deliberately NOT routed through `resolve()`: a wrong password must never be papered over
+ * with a fixture "success". 401 → invalid; anything else (cold start, no network) → offline,
+ * and the caller decides whether to offer the demo-mode door.
+ */
+export async function loginApi(phone: string, password: string): Promise<LoginResult> {
+  try {
+    const data = await call<LoginOut>('/api/auth/login', {
+      method: 'POST',
+      body: { phone, password },
+      timeoutMs: 30_000,
+    })
+    return { outcome: 'ok', data }
+  } catch (error) {
+    if (error instanceof ApiError && error.statusCode === 401) return { outcome: 'invalid' }
+    return { outcome: 'offline' }
+  }
 }

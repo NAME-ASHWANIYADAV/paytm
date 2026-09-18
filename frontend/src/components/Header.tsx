@@ -4,6 +4,7 @@ import { useLang } from '../i18n'
 import { useTheme } from '../hooks/useTheme'
 import { useApp } from '../state/store'
 import { CrossIcon, MoonIcon, MuteIcon, SoundIcon, SunIcon } from './Icons'
+import { LogoMark } from './Logo'
 
 /**
  * A slim app bar: the shop, and one quiet status dot.
@@ -21,7 +22,7 @@ const SPONSORS: Array<{ key: string; label: string; role: string }> = [
 ]
 
 export function Header(): JSX.Element {
-  const { t, lang, signOut } = useLang()
+  const { t, lang, session, signOut } = useLang()
   const { health, dashboard, usingFixtures, liveStatus, muted, toggleMute, reconnect } = useApp()
   const { resolved, toggle } = useTheme()
   const [open, setOpen] = useState(false)
@@ -36,7 +37,8 @@ export function Header(): JSX.Element {
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
 
-  const shopName = dashboard?.merchant.shop_name ?? 'Sharma General Store'
+  // Identity chain: live dashboard first, then what login captured, then the fixture shop.
+  const shopName = dashboard?.merchant.shop_name ?? session?.shopName ?? 'Sharma General Store'
   const locality = dashboard?.merchant.locality ?? ''
 
   const anyLive = (health?.providers ?? []).some((provider) => provider.mode === 'live' && provider.ok)
@@ -45,8 +47,8 @@ export function Header(): JSX.Element {
   return (
     <header className="appbar">
       <div className="appbar__brand">
-        <span className="appbar__mark deva" aria-hidden="true">
-          मु
+        <span className="appbar__mark" aria-hidden="true">
+          <LogoMark size={30} />
         </span>
         <span className="appbar__text">
           <b>{shopName}</b>
