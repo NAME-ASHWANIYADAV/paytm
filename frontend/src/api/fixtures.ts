@@ -29,10 +29,14 @@ import type {
   HealthOut,
   InsightListOut,
   InsightOut,
+  KhataBucketLabel,
+  KhataDebtorOut,
+  KhataOut,
   Meta,
   Money,
   PaymentMixSlice,
   SparkPoint,
+  Tone,
   ToolCallOut,
   MerchantHealthOut,
 } from './types'
@@ -185,6 +189,8 @@ export interface TodayFigures {
   transactions: number
   averageTicketPaise: number
   uniqueCustomers: number
+  repeatCustomers: number
+  newCustomers: number
 }
 
 /** Round to whole rupees — a kirana's totals are never quoted in paise. */
@@ -201,6 +207,9 @@ export function todayFigures(): TodayFigures {
   const progress = dayProgress()
   const collectedPaise = toRupees(projectedPaise * progress)
   const transactions = Math.max(1, Math.round(collectedPaise / 24_700))
+  const uniqueCustomers = Math.round(transactions * 0.72)
+  // A kirana runs on regulars: about five of every six of today's buyers have bought before.
+  const repeatCustomers = Math.round(uniqueCustomers * 0.83)
   return {
     day,
     dow,
@@ -210,7 +219,9 @@ export function todayFigures(): TodayFigures {
     progress,
     transactions,
     averageTicketPaise: toRupees(collectedPaise / transactions),
-    uniqueCustomers: Math.round(transactions * 0.72),
+    uniqueCustomers,
+    repeatCustomers,
+    newCustomers: uniqueCustomers - repeatCustomers,
   }
 }
 
@@ -304,6 +315,8 @@ export function fixtureDashboard(): DashboardOut {
       collected: fixtureMoney(figures.collectedPaise),
       transactions: figures.transactions,
       unique_customers: figures.uniqueCustomers,
+      repeat_customers: figures.repeatCustomers,
+      new_customers: figures.newCustomers,
       average_ticket: fixtureMoney(figures.averageTicketPaise),
       projected_close: fixtureMoney(figures.projectedPaise),
       projection_confidence: 0.81,
@@ -322,6 +335,81 @@ export function fixtureDashboard(): DashboardOut {
     pending_action_count: 2,
     generated_at: istStamp(),
     meta: meta('local', 41),
+  }
+}
+
+/* ------------------------------------------------------------------------- khata */
+
+/** `credit.py::_bucket_for` — inclusive upper bounds in days, the last bucket open-ended. */
+function khataBucket(daysOverdue: number): KhataBucketLabel {
+  if (daysOverdue <= 15) return '0-15'
+  if (daysOverdue <= 30) return '16-30'
+  if (daysOverdue <= 60) return '31-60'
+  return '60+'
+}
+
+/** entry id · customer id · name · phone · paise owed · days overdue · reminders sent · tone. */
+const DEBTOR_SEEDS: Array<[string, string, string, string, number, number, number, Tone]> = [
+  ['kh_fx_0007', 'cus_fx_khata_01', 'Harish Bansal', '+91 98107 63321', 154_000, 71, 2, 'standard'],
+  ['kh_fx_0003', 'cus_fx_khata_02', 'Rakesh Gupta', '+91 98101 77450', 120_000, 78, 2, 'standard'],
+  ['kh_fx_0009', 'cus_fx_khata_03', 'Salma Qureshi', '+91 99532 08114', 118_000, 66, 1, 'standard'],
+  ['kh_fx_0011', 'cus_fx_khata_04', 'Dinesh Rawat', '+91 98995 12408', 93_000, 63, 1, 'standard'],
+  ['kh_fx_0014', 'cus_fx_khata_05', 'Imran Khan', '+91 98736 55912', 88_000, 44, 1, 'gentle'],
+  ['kh_fx_0012', 'cus_fx_khata_06', 'Kavita Malhotra', '+91 99105 88347', 74_000, 52, 1, 'gentle'],
+  ['kh_fx_0015', 'cus_fx_khata_07', 'Bhupinder Kaur', '+91 98115 20663', 61_000, 37, 1, 'gentle'],
+  ['kh_fx_0016', 'cus_fx_khata_08', 'Sunita Devi', '+91 98680 41275', 56_000, 22, 0, 'gentle'],
+  ['kh_fx_0018', 'cus_fx_khata_09', 'Naresh Tiwari', '+91 97173 09521', 46_000, 9, 0, 'gentle'],
+]
+
+/**
+ * The khata page, offline — `GET /api/khata/{merchant_id}` exactly as `udhaar_ledger()` shapes it.
+ *
+ * The numbers agree with everything else on screen: ₹11,300 open across 18 entries
+ * (`fixtureDashboard`), 4 accounts past 60 days holding ₹4,850 with the oldest at 78 days
+ * (`ins_01JUDHAAR60`, and Rakesh Gupta's ₹1,200 from the graph), and ₹3,100 sitting in 31–60,
+ * the bucket the executed gentle-tone reminder (`act_01JUDHAAR01`) chased. Money here is raw
+ * integer paise plus a preformatted display string, not `Money` — the live route serves the
+ * tool's dict unchanged.
+ */
+export function fixtureKhata(): KhataOut {
+  const topDebtors: KhataDebtorOut[] = DEBTOR_SEEDS.map(
+    ([entryId, customerId, name, phone, amountPaise, daysOverdue, remindersSent, tone]) => ({
+      khata_entry_id: entryId,
+      customer_id: customerId,
+      name,
+      phone,
+      amount_paise: amountPaise,
+      amount_display: inr(amountPaise),
+      days_overdue: daysOverdue,
+      bucket: khataBucket(daysOverdue),
+      reminders_sent: remindersSent,
+      suggested_tone: tone,
+    }),
+  )
+  // Chase priority, the backend's exact rule: the biggest, oldest balances first.
+  topDebtors.sort(
+    (left, right) =>
+      right.amount_paise * (1 + right.days_overdue / 30) -
+      left.amount_paise * (1 + left.days_overdue / 30),
+  )
+
+  // 18 open entries in all; the nine seeds are the chase list, the rest sit in the young buckets.
+  const buckets: KhataOut['buckets'] = {
+    '0-15': { count: 5, amount_paise: 182_500, amount_display: inr(182_500) },
+    '16-30': { count: 3, amount_paise: 152_500, amount_display: inr(152_500) },
+    '31-60': { count: 6, amount_paise: 310_000, amount_display: inr(310_000) },
+    '60+': { count: 4, amount_paise: 485_000, amount_display: inr(485_000) },
+  }
+
+  return {
+    merchant_id: FIXTURE_MERCHANT_ID,
+    total_outstanding_paise: 1_130_000,
+    total_outstanding_display: inr(1_130_000),
+    entry_count: 18,
+    customer_count: 16,
+    buckets,
+    over_60_days_count: 4,
+    top_debtors: topDebtors,
   }
 }
 

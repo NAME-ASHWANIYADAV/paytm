@@ -15,15 +15,9 @@ body,
 body {
   margin: 0;
   background-color: var(--page);
-  /* The page itself is ledger paper: a faint horizontal rule every 28px and the red margin. */
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0 27px,
-    var(--rule-faint) 27px 28px
-  );
   color: var(--ink);
   font-family: var(--font-text);
-  font-size: 14px;
+  font-size: var(--t-base);
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -61,7 +55,7 @@ button {
 }
 
 ::selection {
-  background: var(--gold-wash);
+  background: var(--primary-wash);
   color: var(--ink);
 }
 

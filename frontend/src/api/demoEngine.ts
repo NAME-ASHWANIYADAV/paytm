@@ -16,6 +16,7 @@ import {
   fixtureGraph,
   fixtureHealth,
   fixtureInsights,
+  fixtureKhata,
   fixtureMoney,
   todayFigures,
   fixtureMerchantHealth,
@@ -27,6 +28,7 @@ import type {
   GraphOut,
   HealthOut,
   InsightListOut,
+  KhataOut,
   MemoryHitOut,
   MemoryKind,
   MemorySearchOut,
@@ -86,6 +88,10 @@ export function demoDashboard(): DashboardOut {
 
 export function demoMerchantHealth(): MerchantHealthOut {
   return fixtureMerchantHealth()
+}
+
+export function demoKhata(): KhataOut {
+  return fixtureKhata()
 }
 
 export function demoInsights(): InsightListOut {

@@ -21,6 +21,7 @@ import {
   demoGraph,
   demoHealth,
   demoInsights,
+  demoKhata,
   demoRefreshInsights,
   demoReject,
   demoSearch,
@@ -35,6 +36,7 @@ import type {
   GraphOut,
   HealthOut,
   InsightListOut,
+  KhataOut,
   MemorySearchIn,
   MemorySearchOut,
   SpeakIn,
@@ -198,6 +200,10 @@ export function getMerchantHealth(
     () => call<MerchantHealthOut>(`/api/merchant/${merchantId}/health`),
     fixtureMerchantHealth,
   )
+}
+
+export function getKhata(merchantId = MERCHANT_ID): Promise<ApiResult<KhataOut>> {
+  return resolve(() => call<KhataOut>(`/api/khata/${merchantId}`), demoKhata)
 }
 
 export function getInsights(merchantId = MERCHANT_ID): Promise<ApiResult<InsightListOut>> {

@@ -149,6 +149,9 @@ export interface TodaySnapshot {
   collected: Money
   transactions: number
   unique_customers: number
+  /** Of today's named buyers, how many had bought before today vs never before. */
+  repeat_customers: number
+  new_customers: number
   average_ticket: Money
   projected_close: Money | null
   projection_confidence: number
@@ -172,6 +175,50 @@ export interface DashboardOut {
   pending_action_count: number
   generated_at: string
   meta: Meta
+}
+
+/* ------------------------------------------------------------------ khata */
+
+/** agent/tools/credit.py :: AGING_BUCKETS — inclusive upper bounds in days; `60+` is open-ended. */
+export type KhataBucketLabel = '0-15' | '16-30' | '31-60' | '60+'
+
+/** One aging bucket of the open udhaar. */
+export interface KhataBucketOut {
+  count: number
+  amount_paise: number
+  amount_display: string
+}
+
+/** One open debtor row, chase-ordered (biggest, oldest balances first). */
+export interface KhataDebtorOut {
+  khata_entry_id: string
+  customer_id: string
+  name: string
+  phone: string
+  amount_paise: number
+  amount_display: string
+  days_overdue: number
+  bucket: KhataBucketLabel
+  reminders_sent: number
+  suggested_tone: Tone
+}
+
+/**
+ * agent/tools/credit.py :: udhaar_ledger() — served by `GET /api/khata/{merchant_id}`.
+ *
+ * The one payload here that is not a `schemas/*.py` DTO: the route serves the tool's dict
+ * (plus `merchant_id`) unchanged, so money arrives as raw integer paise with a preformatted
+ * `*_display` string, not as `Money`. `top_debtors` is chase-ordered, biggest and oldest first.
+ */
+export interface KhataOut {
+  merchant_id: string
+  total_outstanding_paise: number
+  total_outstanding_display: string
+  entry_count: number
+  customer_count: number
+  buckets: Record<KhataBucketLabel, KhataBucketOut>
+  over_60_days_count: number
+  top_debtors: KhataDebtorOut[]
 }
 
 /* ---------------------------------------------------------------- insight */

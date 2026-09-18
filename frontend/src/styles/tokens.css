@@ -1,119 +1,123 @@
 /*
- * MunshiJi design tokens — "bahi khata".
+ * MunshiJi design tokens — Paytm-family merchant app.
  *
- * The subject is a kirana shop's ledger, so the surface is warm paper, the text is ink, the
- * structure is ruled lines, and the margin rule is red. Red marks what needs attention, a
- * single warm gold marks approvals and money that came back, and a deep teal marks anything
- * running live (providers, focus rings). Deliberately not Paytm blue.
+ * The palette is the one a Paytm merchant already trusts: cool white surfaces, deep navy ink,
+ * the cyan reserved for the brand's own moments. Two rules are load-bearing and checked in
+ * review: CYAN IS A FILL (2.28:1 on white — never body text; --primary-text carries links),
+ * and colour only ever means something — red is money owed, green is money in, amber is
+ * udhaar, cyan is the brand or a live system. Zerodha discipline: one accent per screen,
+ * hairline dividers for dense lists, cards only where a number needs a stage.
  *
- * Every token is defined in the base :root. The dark block redefines the same names only.
+ * Every token is defined in the base :root. The dark blocks redefine the same names only.
  */
 
 :root {
   color-scheme: light;
 
   /* --- surfaces --------------------------------------------------------- */
-  --page: #efe7d9;
-  --page-edge: #e6dbc8;
-  --panel: #fbf7ee;
-  --panel-inset: #f4ecdd;
-  --panel-sunk: #eee5d3;
-  --rule: #e3d8c4;
-  --rule-strong: #cdbda1;
-  --rule-faint: #ece2d0;
+  --page: #f3f6fa;
+  --page-edge: #e9eef5;
+  --panel: #ffffff;
+  --panel-inset: #f7fafd;
+  --panel-sunk: #eef3f8;
+  --rule: #e3e9f0;
+  --rule-strong: #c9d4e0;
+  --rule-faint: #eef2f7;
 
   /* --- ink -------------------------------------------------------------- */
-  --ink: #1a1712;
-  --ink-2: #4e463a;
-  --ink-3: #7d7263;
-  --ink-inverse: #fbf7ee;
+  --ink: #10243e;
+  --ink-2: #44546a;
+  --ink-3: #5b6b7f;
+  --ink-inverse: #ffffff;
+
+  /* --- brand ------------------------------------------------------------ */
+  --primary: #00b9f1; /* fills only: the centre tab, active tints, hero accents */
+  --primary-dark: #002e6e; /* the text-safe navy; primary buttons fill with this */
+  --primary-text: #0b5fa5; /* links and text-buttons — cyan fails contrast as text */
+  --primary-wash: #e5f7fe;
+  --primary-edge: #9fe0f9;
 
   /* --- accents ---------------------------------------------------------- */
-  --red: #b03528;
-  --red-ink: #8f2a1f;
-  --red-wash: #f8e5e0;
-  --red-edge: #e6bdb3;
+  --red: #d92d20;
+  --red-ink: #b42318;
+  --red-wash: #fdecea;
+  --red-edge: #f5b9b4;
 
-  --gold: #a8761b;
-  --gold-ink: #865d12;
-  --gold-wash: #f8ecd3;
-  --gold-edge: #e3cd9d;
+  --gold: #b45309; /* udhaar amber */
+  --gold-ink: #8a5a00;
+  --gold-wash: #fcf2dd;
+  --gold-edge: #efd29a;
 
-  --green: #2f6a4a;
-  --green-ink: #245439;
-  --green-wash: #e2efe4;
-  --green-edge: #b8d6c0;
+  --green: #16a34a;
+  --green-ink: #0c7a43;
+  --green-wash: #e7f6ee;
+  --green-edge: #a9dfc1;
 
-  --teal: #0f6d63;
-  --teal-ink: #0b544c;
-  --teal-wash: #ddeeeb;
-  --teal-edge: #a9d2cc;
+  --teal: #0369a1; /* system/live family — kept distinct from brand cyan fills */
+  --teal-ink: #075985;
+  --teal-wash: #e0f4fe;
+  --teal-edge: #a5dff6;
 
-  --focus: #0f6d63;
+  --focus: #0083cb;
 
-  /* --- payment-mix ramp (one hue family, ordered by share) -------------- */
-  --mix-1: #8a5a2b;
-  --mix-2: #b3813f;
-  --mix-3: #cfa564;
-  --mix-4: #e0c391;
-  --mix-5: #efdfc2;
+  /* --- payment-mix ramp (navy → cyan, ordered by share) ------------------ */
+  --mix-1: #002e6e;
+  --mix-2: #0d5cab;
+  --mix-3: #0091d4;
+  --mix-4: #5bc9f5;
+  --mix-5: #bee7fb;
 
   /* --- graph node colours ----------------------------------------------- */
-  --node-merchant: #1a1712;
-  --node-customer: #0f6d63;
-  --node-product: #8a5a2b;
-  --node-day: #6b6152;
-  --node-action: #a8761b;
-  --node-insight: #b03528;
-  --node-note: #5b6b86;
-  --node-conversation: #74508f;
+  --node-merchant: #002e6e;
+  --node-customer: #0369a1;
+  --node-product: #6c4bc4;
+  --node-day: #64748b;
+  --node-action: #b45309;
+  --node-insight: #d92d20;
+  --node-note: #4c7099;
+  --node-conversation: #8a56c9;
 
   /* --- type ------------------------------------------------------------- */
-  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+  /* Plex has a metrically matched Devanagari sibling — that pairing is why the bilingual UI
+     never jitters between scripts. The display face is just the text face with weight. */
+  --font-display: 'IBM Plex Sans', 'IBM Plex Sans Devanagari', 'Segoe UI', system-ui, sans-serif;
   --font-text: 'IBM Plex Sans', 'IBM Plex Sans Devanagari', 'Segoe UI', system-ui, -apple-system,
     sans-serif;
   --font-deva: 'IBM Plex Sans Devanagari', 'Noto Sans Devanagari', 'Nirmala UI', 'Mangal',
     var(--font-text);
   --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, 'Courier New', monospace;
 
-  /*
-   * --- type scale ---------------------------------------------------------
-   *
-   * This screen is watched from three metres while a phone call happens, not read by someone
-   * leaning into a laptop. So the scale has real steps: a label and a headline must never be
-   * one notch apart. Sizes are px, not rem, because the jumps are the point and a browser
-   * zoom should move the whole instrument together.
-   */
-  --t-label: 11px; /* uppercase, tracked, the quietest thing on screen */
-  --t-xs: 12.5px; /* metadata: latencies, refs, timestamps */
-  --t-sm: 13.5px; /* dense secondary copy */
-  --t-base: 15px; /* default body */
-  --t-md: 17px; /* panel titles, insight headlines */
-  --t-lg: 21px; /* the transcript — the thing an audience actually reads */
-  --t-xl: 30px; /* a panel's own headline figure */
-  --t-hero: clamp(40px, 4.2vw, 60px); /* today's collection, and nothing else */
+  /* --- type scale — sized for a 360px phone, not a projector ------------- */
+  --t-label: 11px;
+  --t-xs: 12.5px;
+  --t-sm: 13.5px;
+  --t-base: 15px;
+  --t-md: 17px;
+  --t-lg: 19px;
+  --t-xl: 26px;
+  --t-hero: clamp(32px, 9vw, 44px);
 
   --lh-tight: 1.12;
   --lh-snug: 1.32;
   --lh-body: 1.5;
-  --track-label: 0.1em;
+  --track-label: 0.08em;
   --track-tight: -0.015em;
 
-  /* --- spacing scale ------------------------------------------------------ */
+  /* --- spacing scale (8pt grid) ------------------------------------------ */
   --s-1: 4px;
   --s-2: 8px;
   --s-3: 12px;
   --s-4: 16px;
-  --s-5: 22px;
-  --s-6: 30px;
+  --s-5: 24px;
+  --s-6: 32px;
 
   /* --- shape and depth --------------------------------------------------- */
-  --r-sm: 3px;
-  --r-md: 6px;
-  --r-lg: 10px;
-  --shadow-panel: 0 1px 0 rgba(255, 253, 247, 0.7) inset, 0 10px 26px -20px rgba(66, 44, 14, 0.8);
-  --shadow-raised: 0 14px 30px -20px rgba(66, 44, 14, 0.9);
-  --shadow-pop: 0 18px 40px -22px rgba(40, 26, 8, 0.75);
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --shadow-panel: 0 1px 2px rgba(16, 36, 62, 0.05), 0 2px 8px -2px rgba(16, 36, 62, 0.06);
+  --shadow-raised: 0 4px 16px -4px rgba(16, 36, 62, 0.1);
+  --shadow-pop: 0 12px 32px -8px rgba(16, 36, 62, 0.18);
 
   /* --- motion ------------------------------------------------------------ */
   --ease: cubic-bezier(0.22, 0.68, 0.32, 1);
@@ -127,60 +131,66 @@
   :root:not([data-theme='light']) {
     color-scheme: dark;
 
-    --page: #14120e;
-    --page-edge: #100e0b;
-    --panel: #1d1a15;
-    --panel-inset: #24201a;
-    --panel-sunk: #171410;
-    --rule: #332d24;
-    --rule-strong: #4a4132;
-    --rule-faint: #262119;
+    --page: #0b1220;
+    --page-edge: #070d18;
+    --panel: #111a2b;
+    --panel-inset: #16233a;
+    --panel-sunk: #0d1626;
+    --rule: #22304a;
+    --rule-strong: #36496a;
+    --rule-faint: #1a2740;
 
-    --ink: #f3ebda;
-    --ink-2: #c5baa5;
-    --ink-3: #8d8272;
-    --ink-inverse: #14120e;
+    --ink: #e8eef6;
+    --ink-2: #b4c2d3;
+    --ink-3: #8fa1b5;
+    --ink-inverse: #0b1220;
 
-    --red: #e58069;
-    --red-ink: #f09b85;
-    --red-wash: #3b211b;
-    --red-edge: #5e372c;
+    --primary: #00b9f1;
+    --primary-dark: #33c6f4;
+    --primary-text: #5bc9f5;
+    --primary-wash: #0c2c3e;
+    --primary-edge: #1d5573;
 
-    --gold: #e0b263;
-    --gold-ink: #eec77e;
-    --gold-wash: #382b16;
-    --gold-edge: #5c4622;
+    --red: #f87168;
+    --red-ink: #ff9c93;
+    --red-wash: #38191c;
+    --red-edge: #6c2b2f;
 
-    --green: #6fbf92;
-    --green-ink: #8ed3ab;
-    --green-wash: #1c3227;
-    --green-edge: #2f5340;
+    --gold: #f2b33d;
+    --gold-ink: #f7c86b;
+    --gold-wash: #33270f;
+    --gold-edge: #5c4a1e;
 
-    --teal: #5ec8bb;
-    --teal-ink: #7ed8cc;
-    --teal-wash: #17332f;
-    --teal-edge: #2b554e;
+    --green: #4ecb8f;
+    --green-ink: #7bdcad;
+    --green-wash: #0f2e20;
+    --green-edge: #245a3c;
 
-    --focus: #6fd8c8;
+    --teal: #33c6f4;
+    --teal-ink: #6fd8f8;
+    --teal-wash: #0c2c3e;
+    --teal-edge: #1d5573;
 
-    --mix-1: #e0b263;
-    --mix-2: #c08f49;
-    --mix-3: #9a6f39;
-    --mix-4: #6f4f2a;
-    --mix-5: #4a3520;
+    --focus: #33c6f4;
 
-    --node-merchant: #f3ebda;
-    --node-customer: #5ec8bb;
-    --node-product: #d09a5c;
-    --node-day: #a49881;
-    --node-action: #e0b263;
-    --node-insight: #e58069;
-    --node-note: #9db0cf;
-    --node-conversation: #bb96d4;
+    --mix-1: #33c6f4;
+    --mix-2: #2296d8;
+    --mix-3: #1d6db0;
+    --mix-4: #1d4e86;
+    --mix-5: #24365c;
 
-    --shadow-panel: 0 1px 0 rgba(255, 240, 214, 0.05) inset, 0 14px 30px -24px rgba(0, 0, 0, 1);
-    --shadow-raised: 0 18px 34px -24px rgba(0, 0, 0, 1);
-    --shadow-pop: 0 22px 46px -26px rgba(0, 0, 0, 1);
+    --node-merchant: #e8eef6;
+    --node-customer: #33c6f4;
+    --node-product: #9c7bec;
+    --node-day: #8fa1b5;
+    --node-action: #f2b33d;
+    --node-insight: #f87168;
+    --node-note: #7fa3c8;
+    --node-conversation: #ba93e8;
+
+    --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 24px -18px rgba(0, 0, 0, 0.9);
+    --shadow-raised: 0 14px 30px -20px rgba(0, 0, 0, 0.95);
+    --shadow-pop: 0 18px 40px -22px rgba(0, 0, 0, 1);
   }
 }
 
@@ -188,60 +198,66 @@
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --page: #14120e;
-  --page-edge: #100e0b;
-  --panel: #1d1a15;
-  --panel-inset: #24201a;
-  --panel-sunk: #171410;
-  --rule: #332d24;
-  --rule-strong: #4a4132;
-  --rule-faint: #262119;
+  --page: #0b1220;
+  --page-edge: #070d18;
+  --panel: #111a2b;
+  --panel-inset: #16233a;
+  --panel-sunk: #0d1626;
+  --rule: #22304a;
+  --rule-strong: #36496a;
+  --rule-faint: #1a2740;
 
-  --ink: #f3ebda;
-  --ink-2: #c5baa5;
-  --ink-3: #8d8272;
-  --ink-inverse: #14120e;
+  --ink: #e8eef6;
+  --ink-2: #b4c2d3;
+  --ink-3: #8fa1b5;
+  --ink-inverse: #0b1220;
 
-  --red: #e58069;
-  --red-ink: #f09b85;
-  --red-wash: #3b211b;
-  --red-edge: #5e372c;
+  --primary: #00b9f1;
+  --primary-dark: #33c6f4;
+  --primary-text: #5bc9f5;
+  --primary-wash: #0c2c3e;
+  --primary-edge: #1d5573;
 
-  --gold: #e0b263;
-  --gold-ink: #eec77e;
-  --gold-wash: #382b16;
-  --gold-edge: #5c4622;
+  --red: #f87168;
+  --red-ink: #ff9c93;
+  --red-wash: #38191c;
+  --red-edge: #6c2b2f;
 
-  --green: #6fbf92;
-  --green-ink: #8ed3ab;
-  --green-wash: #1c3227;
-  --green-edge: #2f5340;
+  --gold: #f2b33d;
+  --gold-ink: #f7c86b;
+  --gold-wash: #33270f;
+  --gold-edge: #5c4a1e;
 
-  --teal: #5ec8bb;
-  --teal-ink: #7ed8cc;
-  --teal-wash: #17332f;
-  --teal-edge: #2b554e;
+  --green: #4ecb8f;
+  --green-ink: #7bdcad;
+  --green-wash: #0f2e20;
+  --green-edge: #245a3c;
 
-  --focus: #6fd8c8;
+  --teal: #33c6f4;
+  --teal-ink: #6fd8f8;
+  --teal-wash: #0c2c3e;
+  --teal-edge: #1d5573;
 
-  --mix-1: #e0b263;
-  --mix-2: #c08f49;
-  --mix-3: #9a6f39;
-  --mix-4: #6f4f2a;
-  --mix-5: #4a3520;
+  --focus: #33c6f4;
 
-  --node-merchant: #f3ebda;
-  --node-customer: #5ec8bb;
-  --node-product: #d09a5c;
-  --node-day: #a49881;
-  --node-action: #e0b263;
-  --node-insight: #e58069;
-  --node-note: #9db0cf;
-  --node-conversation: #bb96d4;
+  --mix-1: #33c6f4;
+  --mix-2: #2296d8;
+  --mix-3: #1d6db0;
+  --mix-4: #1d4e86;
+  --mix-5: #24365c;
 
-  --shadow-panel: 0 1px 0 rgba(255, 240, 214, 0.05) inset, 0 14px 30px -24px rgba(0, 0, 0, 1);
-  --shadow-raised: 0 18px 34px -24px rgba(0, 0, 0, 1);
-  --shadow-pop: 0 22px 46px -26px rgba(0, 0, 0, 1);
+  --node-merchant: #e8eef6;
+  --node-customer: #33c6f4;
+  --node-product: #9c7bec;
+  --node-day: #8fa1b5;
+  --node-action: #f2b33d;
+  --node-insight: #f87168;
+  --node-note: #7fa3c8;
+  --node-conversation: #ba93e8;
+
+  --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 24px -18px rgba(0, 0, 0, 0.9);
+  --shadow-raised: 0 14px 30px -20px rgba(0, 0, 0, 0.95);
+  --shadow-pop: 0 18px 40px -22px rgba(0, 0, 0, 1);
 }
 
 :root[data-theme='light'] {

@@ -1,9 +1,11 @@
 /**
- * One store for the whole screen. No routing, no global state library — a single context
- * that owns the API calls, the live-event wiring and the conversation transcript.
+ * One store for the whole app. No global state library — a single context that owns the API
+ * calls, the live-event wiring and the conversation transcript.
+ *
+ * Loading is gated on the session: until the merchant has picked a language on the login
+ * screen nothing is fetched, so the first thing the app does is ask, not spend.
  */
 
-import { useRoute } from '../router'
 import {
   createContext,
   useCallback,
@@ -20,9 +22,9 @@ import {
   getActions,
   getClientStatus,
   getDashboard,
-  getMerchantHealth,
   getHealth,
   getInsights,
+  getKhata,
   getMemoryGraph,
   MERCHANT_ID,
   postChat,
@@ -43,11 +45,12 @@ import type {
   HealthOut,
   InsightListOut,
   JsonValue,
+  KhataOut,
   MemorySearchOut,
   ToolCallOut,
   TurnResultOut,
-  MerchantHealthOut,
 } from '../api/types'
+import { speechTag, useLang } from '../i18n'
 import { playDataUri, primeVoices, speakText, stopSpeaking } from '../lib/speech'
 
 export interface TranscriptEntry {
@@ -77,8 +80,7 @@ export interface AppValue {
   merchantId: string
   health: HealthOut | null
   dashboard: DashboardOut | null
-  /** The lender-facing read of the same engines. */
-  merchantHealth: MerchantHealthOut | null
+  khata: KhataOut | null
   insights: InsightListOut | null
   actions: ActionListOut | null
   graph: GraphOut | null
@@ -127,32 +129,11 @@ function readMuted(): boolean {
   }
 }
 
-/**
- * Which page a tool's answer belongs on.
- *
- * The product's claim is that MunshiJi does things, not that it describes them — so when it runs
- * a tool, the screen goes where the result lives. Asking who has gone quiet lands you on सलाह with
- * the finding open; approving an offer lands you on काम beside it. Tools that answer a question
- * about today are absent on purpose: those figures are already beside the conversation, and
- * moving the screen for them would be motion without meaning.
- */
-const PAGE_FOR_TOOL: Record<string, string> = {
-  get_insights: '/salah',
-  find_dormant_customers: '/salah',
-  get_inventory_alerts: '/salah',
-  get_product_performance: '/salah',
-  send_winback_offer: '/kaam',
-  send_udhaar_reminder: '/kaam',
-  draft_restock_order: '/kaam',
-  create_payment_link: '/kaam',
-  recall_memory: '/yaaddasht',
-  get_merchant_health: '/sehat',
-}
-
 export function AppProvider({ children }: { children: ReactNode }): JSX.Element {
+  const { session, lang, t } = useLang()
   const [health, setHealth] = useState<HealthOut | null>(null)
   const [dashboard, setDashboard] = useState<DashboardOut | null>(null)
-  const [merchantHealth, setMerchantHealth] = useState<MerchantHealthOut | null>(null)
+  const [khata, setKhata] = useState<KhataOut | null>(null)
   const [insights, setInsights] = useState<InsightListOut | null>(null)
   const [actions, setActions] = useState<ActionListOut | null>(null)
   const [graph, setGraph] = useState<GraphOut | null>(null)
@@ -188,6 +169,8 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
   const mutedRef = useRef(muted)
   mutedRef.current = muted
 
+  const hasSession = session !== null
+
   /* ---------------------------------------------------------------- loaders */
 
   const loadHealth = useCallback(async () => {
@@ -200,20 +183,9 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
     setDashboard(data)
   }, [])
 
-  const { path, navigate } = useRoute()
-
-  /** Follow the first tool that has a home page, unless the reader is already there. */
-  const followTools = useCallback(
-    (calls: ToolCallOut[]) => {
-      const target = calls.map((call) => PAGE_FOR_TOOL[call.name]).find(Boolean)
-      if (target && target !== path) navigate(target)
-    },
-    [navigate, path],
-  )
-
-  const loadMerchantHealth = useCallback(async () => {
-    const { data } = await getMerchantHealth()
-    setMerchantHealth(data)
+  const loadKhata = useCallback(async () => {
+    const { data } = await getKhata()
+    setKhata(data)
   }, [])
 
   const loadInsights = useCallback(async () => {
@@ -233,19 +205,14 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
 
   const loadAll = useCallback(async () => {
     await loadHealth()
-    await Promise.all([
-      loadDashboard(),
-      loadMerchantHealth(),
-      loadInsights(),
-      loadActions(),
-      loadGraph(),
-    ])
-  }, [loadActions, loadDashboard, loadGraph, loadHealth, loadInsights, loadMerchantHealth])
+    await Promise.all([loadDashboard(), loadKhata(), loadInsights(), loadActions(), loadGraph()])
+  }, [loadActions, loadDashboard, loadGraph, loadHealth, loadInsights, loadKhata])
 
   useEffect(() => {
+    if (!hasSession) return undefined
     void loadAll()
     return primeVoices()
-  }, [loadAll])
+  }, [hasSession, loadAll])
 
   useEffect(() => subscribeClientStatus(setClientStatus), [])
 
@@ -290,6 +257,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
             void loadActions()
           }
           void loadDashboard()
+          void loadKhata()
           break
         case 'provider.changed':
         case 'health':
@@ -308,20 +276,34 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
           void loadAll()
       }
     },
-    [loadActions, loadAll, loadDashboard, loadGraph, loadHealth, loadInsights],
+    [loadActions, loadAll, loadDashboard, loadGraph, loadHealth, loadInsights, loadKhata],
   )
 
   useEffect(() => {
-    if (clientStatus.usingFixtures) {
-      setLiveStatus('offline')
-      return
+    if (!hasSession || clientStatus.usingFixtures) {
+      if (clientStatus.usingFixtures) setLiveStatus('offline')
+      return undefined
     }
     return startLiveUpdates({
       merchantId: MERCHANT_ID,
       onEvent: handleEvent,
       onStatus: setLiveStatus,
     })
-  }, [clientStatus.usingFixtures, handleEvent])
+  }, [clientStatus.usingFixtures, handleEvent, hasSession])
+
+  /**
+   * A phone that slept through a canvas moment must catch up the second it wakes: Android
+   * pauses timers and drops the SSE socket while the screen is off, and the demo's climax is
+   * a pending-count falling live. On wake, refetch rather than trusting a stale stream.
+   */
+  useEffect(() => {
+    if (!hasSession) return undefined
+    const onWake = (): void => {
+      if (document.visibilityState === 'visible') void loadAll()
+    }
+    document.addEventListener('visibilitychange', onWake)
+    return () => document.removeEventListener('visibilitychange', onWake)
+  }, [hasSession, loadAll])
 
   /* ------------------------------------------------------------------ chat */
 
@@ -362,6 +344,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
           merchant_id: MERCHANT_ID,
           text: trimmed,
           conversation_id: conversationId,
+          language: speechTag(lang),
           speak: true,
         })
         setConversationId(data.conversation_id)
@@ -379,9 +362,8 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
           failed: false,
         })
         voice(data)
-        followTools(data.tool_calls)
         if (data.pending_action || data.executed_action) {
-          await Promise.all([loadActions(), loadDashboard()])
+          await Promise.all([loadActions(), loadDashboard(), loadKhata()])
         }
       } catch (error) {
         const message = error instanceof Error ? error.message : 'chat failed'
@@ -389,7 +371,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
         appendEntry({
           id: nextId('munshi'),
           role: 'munshi',
-          text: 'Maaf kijiye — abhi jawab nahi aa paya. Dobara poochhiye.',
+          text: t('chat.failed'),
           at: istStamp(),
           latency_ms: 0,
           provider: 'error',
@@ -403,7 +385,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
         setBusy((current) => ({ ...current, chat: false }))
       }
     },
-    [appendEntry, busy.chat, conversationId, followTools, loadActions, loadDashboard, voice],
+    [appendEntry, busy.chat, conversationId, lang, loadActions, loadDashboard, loadKhata, t, voice],
   )
 
   const sendAudio = useCallback(
@@ -414,7 +396,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
         if (data.text.trim()) {
           await send(data.text)
         } else {
-          setLastError('Awaaz samajh nahi aayi — neeche type karke poochhiye.')
+          setLastError(t('chat.voiceFailed'))
         }
       } catch (error) {
         setLastError(error instanceof Error ? error.message : 'transcription failed')
@@ -422,7 +404,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
         setBusy((current) => ({ ...current, transcribing: false }))
       }
     },
-    [send],
+    [send, t],
   )
 
   /* --------------------------------------------------------------- actions */
@@ -445,14 +427,14 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       try {
         const { data } = await approveAction(actionId, 'merchant')
         applyAction(data)
-        await Promise.all([loadDashboard(), loadInsights()])
+        await Promise.all([loadDashboard(), loadKhata(), loadInsights()])
       } catch (error) {
         setLastError(error instanceof Error ? error.message : 'approve failed')
       } finally {
         setBusy((current) => ({ ...current, actionId: null }))
       }
     },
-    [applyAction, loadDashboard, loadInsights],
+    [applyAction, loadDashboard, loadInsights, loadKhata],
   )
 
   const reject = useCallback(
@@ -519,7 +501,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       merchantId: MERCHANT_ID,
       health,
       dashboard,
-      merchantHealth,
+      khata,
       insights,
       actions,
       graph,
@@ -552,6 +534,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       graph,
       health,
       insights,
+      khata,
       lastError,
       liveStatus,
       memory,

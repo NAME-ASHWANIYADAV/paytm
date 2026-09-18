@@ -8,9 +8,12 @@ const STORAGE_KEY = 'munshiji.theme'
 function readStored(): ThemeChoice {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY)
-    return raw === 'light' || raw === 'dark' ? raw : 'system'
+    // Light unless the merchant explicitly chose otherwise. This brand's identity is a white
+    // surface with navy ink; following the OS into dark by default handed first-time viewers
+    // (and one screenshot review) a product that read as a different, worse app.
+    return raw === 'light' || raw === 'dark' ? raw : 'light'
   } catch {
-    return 'system'
+    return 'light'
   }
 }
 

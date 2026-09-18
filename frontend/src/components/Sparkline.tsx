@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import type { SparkPoint } from '../api/types'
+import { formatDay, useLang } from '../i18n'
 
 interface SparklineProps {
   points: SparkPoint[]
@@ -43,13 +44,14 @@ function median(values: number[]): number {
  * Today's point is ringed and dropped to the axis so the eye lands on it first.
  */
 export function Sparkline({ points, belowBaseline }: SparklineProps): JSX.Element {
+  const { t, lang } = useLang()
   const [ref, width] = useElementWidth<HTMLDivElement>()
   const [hover, setHover] = useState<number | null>(null)
 
   if (points.length < 2) {
     return (
       <div className="spark" ref={ref}>
-        <div className="empty">14 din ka data aa raha hai…</div>
+        <div className="empty">{t('spark.loading')}</div>
       </div>
     )
   }
@@ -161,16 +163,16 @@ export function Sparkline({ points, belowBaseline }: SparklineProps): JSX.Elemen
         <div className="spark__tip">
           <b>{activePoint.collection.display}</b>{' '}
           <span className="muted">
-            {activePoint.is_today ? 'aaj' : `${activePoint.weekday} ${activePoint.day.slice(5)}`} ·{' '}
-            {activePoint.transactions} txn
+            {activePoint.is_today ? t('spark.today') : formatDay(activePoint.day, lang)} ·{' '}
+            {activePoint.transactions} {t('spark.txn')}
           </span>
         </div>
       ) : null}
 
       <div className="spark__axis">
-        <span>{points[0]?.day.slice(5)}</span>
-        <span className="muted">14 din ki vasooli · dashed = median</span>
-        <span>aaj</span>
+        <span>{formatDay(points[0]?.day ?? '', lang)}</span>
+        <span className="muted">{t('spark.caption')}</span>
+        <span>{t('spark.today')}</span>
       </div>
     </div>
   )

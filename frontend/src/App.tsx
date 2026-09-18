@@ -1,41 +1,41 @@
-import { CallStrip } from './components/CallStrip'
+import { BottomNav } from './components/BottomNav'
 import { Header } from './components/Header'
-import { LedgerTabs } from './components/LedgerTabs'
-import { ActionsPage } from './pages/ActionsPage'
-import { AdvicePage } from './pages/AdvicePage'
-import { CallPage } from './pages/CallPage'
-import { HealthPage } from './pages/HealthPage'
-import { MemoryPage } from './pages/MemoryPage'
+import { useLang } from './i18n'
+import { DukaanPage } from './pages/DukaanPage'
+import { KhataPage } from './pages/KhataPage'
+import { LoginPage } from './pages/LoginPage'
+import { MunshijiPage } from './pages/MunshijiPage'
+import { YaadPage } from './pages/YaadPage'
 import { useRoute } from './router'
 
 /**
- * The shell: the shop's header, the ledger tabs, and whichever page they select.
- *
- * An unrecognised path falls through to the call page rather than an error screen — a mistyped
- * URL during a demo should land somewhere useful.
+ * The shell. No session → the login screen, whatever the URL — the gate lives here, INSIDE
+ * the providers, so the store and router never unmount and the conversation survives the
+ * sign-in. An unrecognised path falls through to the dukaan rather than an error screen: a
+ * mistyped URL during a demo should land somewhere useful.
  */
 export default function App(): JSX.Element {
+  const { session } = useLang()
   const { path } = useRoute()
 
+  if (!session) return <LoginPage />
+
   const page =
-    path === '/salah' ? (
-      <AdvicePage />
-    ) : path === '/kaam' ? (
-      <ActionsPage />
-    ) : path === '/yaaddasht' ? (
-      <MemoryPage />
-    ) : path === '/sehat' ? (
-      <HealthPage />
+    path === '/munshiji' ? (
+      <MunshijiPage />
+    ) : path === '/khata' ? (
+      <KhataPage />
+    ) : path === '/yaad' ? (
+      <YaadPage />
     ) : (
-      <CallPage />
+      <DukaanPage />
     )
 
   return (
-    <div className="shell shell--paged">
+    <div className="app">
       <Header />
-      <LedgerTabs />
-      {page}
-      {path === '/' ? null : <CallStrip />}
+      <div className="app__page">{page}</div>
+      <BottomNav />
     </div>
   )
 }

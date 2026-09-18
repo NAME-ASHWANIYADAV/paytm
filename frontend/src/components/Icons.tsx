@@ -108,3 +108,35 @@ export function SparkIcon({ size = 16 }: IconProps): JSX.Element {
     </svg>
   )
 }
+
+/** The dukaan tab: an awning over a doorway. */
+export function StoreIcon({ size = 20 }: IconProps): JSX.Element {
+  return (
+    <svg {...frame(size)} aria-hidden="true" {...stroke}>
+      <path d="M4 9.5 5.2 4h13.6L20 9.5" />
+      <path d="M4 9.5a2.6 2.6 0 0 0 5.3 0 2.65 2.65 0 0 0 5.4 0 2.6 2.6 0 0 0 5.3 0" />
+      <path d="M5 12v8h14v-8" />
+      <path d="M10 20v-5h4v5" />
+    </svg>
+  )
+}
+
+/** The khata tab: a bound ledger. */
+export function LedgerIcon({ size = 20 }: IconProps): JSX.Element {
+  return (
+    <svg {...frame(size)} aria-hidden="true" {...stroke}>
+      <path d="M6 3.5h11a1.5 1.5 0 0 1 1.5 1.5v14a1.5 1.5 0 0 1-1.5 1.5H6z" />
+      <path d="M6 3.5A1.5 1.5 0 0 0 4.5 5v14A1.5 1.5 0 0 0 6 20.5" />
+      <path d="M9.5 8.5h5.5M9.5 12h5.5M9.5 15.5h3" />
+    </svg>
+  )
+}
+
+/** Everything a chevron does. */
+export function ChevronIcon({ size = 16 }: IconProps): JSX.Element {
+  return (
+    <svg {...frame(size)} aria-hidden="true" {...stroke}>
+      <path d="m9 5.5 6.5 6.5L9 18.5" />
+    </svg>
+  )
+}
