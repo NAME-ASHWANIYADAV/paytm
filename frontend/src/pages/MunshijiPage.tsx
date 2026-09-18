@@ -3,7 +3,8 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { MicIcon, SendIcon, StopIcon } from '../components/Icons'
 import { Waveform } from '../components/Waveform'
 import { useRecorder } from '../hooks/useRecorder'
-import { formatClock, SUGGESTIONS, useLang } from '../i18n'
+import { useSpeechInput } from '../hooks/useSpeechInput'
+import { formatClock, speechTag, SUGGESTIONS, useLang } from '../i18n'
 import { Link } from '../router'
 import { useApp, type TranscriptEntry } from '../state/store'
 
@@ -105,6 +106,7 @@ export function MunshijiPage(): JSX.Element {
   const { t, lang } = useLang()
   const { transcript, send, sendAudio, busy, lastError } = useApp()
   const recorder = useRecorder()
+  const speech = useSpeechInput()
   const [draft, setDraft] = useState('')
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const stickRef = useRef(true)
@@ -129,6 +131,17 @@ export function MunshijiPage(): JSX.Element {
   }
 
   const onMic = async (): Promise<void> => {
+    // Browser-native recognition first: it is the only path that hears real speech without a
+    // Sarvam key (Chrome / installed PWA). The recorder pipeline stays for everything else
+    // and starts winning again the moment the backend's STT goes live.
+    if (speech.supported) {
+      if (speech.listening) {
+        speech.stop()
+        return
+      }
+      speech.start(speechTag(lang), (text) => void send(text))
+      return
+    }
     if (recorder.recording) {
       const blob = await recorder.stop()
       if (blob) await sendAudio(blob)
@@ -139,7 +152,9 @@ export function MunshijiPage(): JSX.Element {
 
   const pastCount = transcript.filter((entry) => entry.session === 'past').length
   const busyVoice = busy.transcribing
-  const micLabel = recorder.recording ? t('chat.micStop') : t('chat.micStart')
+  const micActive = speech.supported ? speech.listening : recorder.recording
+  const micReady = speech.supported || recorder.supported
+  const micLabel = micActive ? t('chat.micStop') : t('chat.micStart')
 
   return (
     <main className="copilot" aria-label={t('nav.munshiji')}>
@@ -197,14 +212,14 @@ export function MunshijiPage(): JSX.Element {
         <div className="composer__row">
           <button
             type="button"
-            className={`mic${recorder.recording ? ' mic--on' : ''}`}
+            className={`mic${micActive ? ' mic--on' : ''}`}
             onClick={() => void onMic()}
-            aria-pressed={recorder.recording}
+            aria-pressed={micActive}
             aria-label={micLabel}
-            title={recorder.supported ? micLabel : t('chat.micMissing')}
-            disabled={!recorder.supported || busy.chat || busyVoice}
+            title={micReady ? micLabel : t('chat.micMissing')}
+            disabled={!micReady || busy.chat || busyVoice}
           >
-            {recorder.recording ? <StopIcon /> : <MicIcon />}
+            {micActive ? <StopIcon /> : <MicIcon />}
           </button>
           <input
             className={`composer__input${lang === 'hi' ? ' deva' : ''}`}
@@ -220,7 +235,7 @@ export function MunshijiPage(): JSX.Element {
         </div>
 
         <div className="composer__hint" role="status">
-          {recorder.recording ? (
+          {micActive ? (
             <span className="listening">
               <span className="dot" aria-hidden="true" /> {t('chat.listening')}
             </span>
@@ -228,6 +243,7 @@ export function MunshijiPage(): JSX.Element {
             <span>{t('chat.transcribing')}</span>
           ) : null}
           {recorder.error ? <strong>{recorder.error}</strong> : null}
+          {speech.error ? <strong>{speech.error}</strong> : null}
           {lastError ? <span className="mono">{lastError}</span> : null}
         </div>
       </form>
