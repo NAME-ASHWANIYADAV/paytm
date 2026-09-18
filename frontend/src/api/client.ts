@@ -112,6 +112,31 @@ export function retryLive(): void {
   publish({ usingFixtures: false, reason: '' })
 }
 
+/*
+ * The latch heals itself. Latching exists so a dead backend is not sprayed with doomed
+ * requests — but a backend that was merely cold-starting comes back a minute later, and a
+ * merchant should not have to find a Reconnect button to get their real shop back. While
+ * latched, one quiet health probe runs every 15s; the first success lifts the latch, and the
+ * store reloads everything the moment it sees the flip.
+ */
+let probeTimer: number | null = null
+
+function ensureProbe(): void {
+  if (MODE !== 'auto' || probeTimer !== null) return
+  probeTimer = window.setInterval(() => {
+    if (!status.usingFixtures) {
+      if (probeTimer !== null) window.clearInterval(probeTimer)
+      probeTimer = null
+      return
+    }
+    void call<HealthOut>('/api/health', { timeoutMs: 30_000 })
+      .then(() => publish({ usingFixtures: false, reason: '' }))
+      .catch(() => {
+        /* still down — probe again next tick */
+      })
+  }, 15_000)
+}
+
 /* ------------------------------------------------------------------- transport */
 
 class ApiError extends Error {
@@ -132,7 +157,9 @@ interface CallOptions {
 }
 
 async function call<T>(path: string, options: CallOptions = {}): Promise<T> {
-  const { method = 'GET', body, formData, timeoutMs = 4000 } = options
+  // Render's free tier cold-starts in 30-60s; a 4s default was one sleepy dyno away from
+  // latching every fresh phone session onto demo data.
+  const { method = 'GET', body, formData, timeoutMs = 25_000 } = options
   const controller = new AbortController()
   const timer = window.setTimeout(() => controller.abort(), timeoutMs)
   try {
@@ -179,6 +206,7 @@ async function resolve<T>(live: () => Promise<T>, fixture: () => T): Promise<Api
   } catch (error) {
     if (MODE === 'never') throw error
     publish({ usingFixtures: true, reason: describe(error) })
+    ensureProbe()
     return { data: fixture(), source: 'fixture' }
   }
 }
@@ -186,7 +214,7 @@ async function resolve<T>(live: () => Promise<T>, fixture: () => T): Promise<Api
 /* ------------------------------------------------------------------- endpoints */
 
 export function getHealth(): Promise<ApiResult<HealthOut>> {
-  return resolve(() => call<HealthOut>('/api/health', { timeoutMs: 2500 }), demoHealth)
+  return resolve(() => call<HealthOut>('/api/health', { timeoutMs: 30_000 }), demoHealth)
 }
 
 export function getDashboard(merchantId = MERCHANT_ID): Promise<ApiResult<DashboardOut>> {
@@ -242,7 +270,7 @@ export function rejectAction(actionId: string, reason = ''): Promise<ApiResult<A
 
 export function postChat(input: ChatIn): Promise<ApiResult<TurnResultOut>> {
   return resolve(
-    () => call<TurnResultOut>('/api/chat', { method: 'POST', body: input, timeoutMs: 20_000 }),
+    () => call<TurnResultOut>('/api/chat', { method: 'POST', body: input, timeoutMs: 45_000 }),
     () => demoChat(input.text),
   )
 }
@@ -253,7 +281,7 @@ export function transcribe(audio: Blob, merchantId = MERCHANT_ID): Promise<ApiRe
       const formData = new FormData()
       formData.append('file', audio, 'turn.webm')
       formData.append('merchant_id', merchantId)
-      return call<TranscribeOut>('/api/voice/transcribe', { method: 'POST', formData, timeoutMs: 20_000 })
+      return call<TranscribeOut>('/api/voice/transcribe', { method: 'POST', formData, timeoutMs: 45_000 })
     },
     demoTranscribe,
   )

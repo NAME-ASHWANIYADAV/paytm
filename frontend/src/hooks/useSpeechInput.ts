@@ -24,6 +24,33 @@ type Recognition = {
   onend: (() => void) | null
 }
 
+type CapacitorSpeechPlugin = {
+  available: () => Promise<{ available: boolean }>
+  requestPermissions: () => Promise<unknown>
+  start: (options: {
+    language: string
+    maxResults: number
+    partialResults: boolean
+    popup: boolean
+  }) => Promise<{ matches?: string[] }>
+  stop: () => Promise<void>
+}
+
+/** The native Android recognizer, when this page is running inside the Capacitor APK.
+
+    Reached through the window bridge on purpose: the web bundle must not import Capacitor
+    (react + react-dom are the only runtime dependencies), and the bridge object simply is not
+    there in an ordinary browser, where the Web Speech API path below takes over. */
+function capacitorSpeech(): CapacitorSpeechPlugin | null {
+  if (typeof window === 'undefined') return null
+  const bridge = (
+    window as unknown as {
+      Capacitor?: { Plugins?: { SpeechRecognition?: CapacitorSpeechPlugin } }
+    }
+  ).Capacitor
+  return bridge?.Plugins?.SpeechRecognition ?? null
+}
+
 function recognitionClass(): (new () => Recognition) | null {
   if (typeof window === 'undefined') return null
   const w = window as unknown as {
@@ -48,7 +75,7 @@ export function useSpeechInput(): SpeechInputApi {
   const [error, setError] = useState('')
   const activeRef = useRef<Recognition | null>(null)
 
-  const supported = recognitionClass() !== null
+  const supported = capacitorSpeech() !== null || recognitionClass() !== null
 
   useEffect(
     () => () => {
@@ -60,10 +87,39 @@ export function useSpeechInput(): SpeechInputApi {
 
   const stop = useCallback(() => {
     // stop() (not abort): lets a final result that is already in flight still arrive.
+    void capacitorSpeech()?.stop().catch(() => {})
     activeRef.current?.stop()
   }, [])
 
   const start = useCallback((lang: string, onText: (text: string) => void) => {
+    const native = capacitorSpeech()
+    if (native) {
+      // popup:true = the platform's own Google mic dialog. It handles start/stop sounds,
+      // partials and cancellation itself and hands back final matches — the most reliable
+      // capture there is on a demo floor.
+      setError('')
+      setListening(true)
+      void (async () => {
+        try {
+          await native.requestPermissions()
+          const result = await native.start({
+            language: lang,
+            maxResults: 1,
+            partialResults: false,
+            popup: true,
+          })
+          const text = result?.matches?.[0]?.trim()
+          if (text) onText(text)
+        } catch (cause) {
+          const message = cause instanceof Error ? cause.message : String(cause)
+          if (!/cancel/i.test(message)) setError(message)
+        } finally {
+          setListening(false)
+        }
+      })()
+      return
+    }
+
     const Ctor = recognitionClass()
     if (!Ctor) return
     activeRef.current?.abort()

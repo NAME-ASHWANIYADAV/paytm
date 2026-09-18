@@ -40,5 +40,13 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Microphone for getUserMedia in the Capacitor WebView (voice input) -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Android 11+ package visibility: without this the app cannot even SEE the device's
+         speech-recognition service, and SpeechRecognizer fails as if none exists. -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 </manifest>

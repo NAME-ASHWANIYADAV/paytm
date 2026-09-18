@@ -13,6 +13,10 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: false,
   },
+  // Explicit plugin list: the repo's rule keeps runtime dependencies to react + react-dom, so
+  // Capacitor packages live in devDependencies — this tells `cap sync` to ship them natively
+  // anyway. The web bundle never imports the plugin; it reaches it via window.Capacitor.
+  includePlugins: ['@capacitor-community/speech-recognition'],
 };
 
 export default config;

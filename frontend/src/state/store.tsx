@@ -216,6 +216,16 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
 
   useEffect(() => subscribeClientStatus(setClientStatus), [])
 
+  // The latch heals in the background (client.ts probe). The instant it lifts, replace every
+  // fixture-fed panel with the real shop — without this, "live again" only shows on refresh.
+  const wasFixtures = useRef(clientStatus.usingFixtures)
+  useEffect(() => {
+    if (wasFixtures.current && !clientStatus.usingFixtures && hasSession) {
+      void loadAll()
+    }
+    wasFixtures.current = clientStatus.usingFixtures
+  }, [clientStatus.usingFixtures, hasSession, loadAll])
+
   /* ----------------------------------------------------------- live updates */
 
   const handleEvent = useCallback(
